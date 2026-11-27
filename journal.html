@@ -3,45 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Journal du projet</title>
+<title>Journal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&family=Nunito:wght@600;800&display=swap" rel="stylesheet">
-<style>
-:root{--fond:#fff6e8;--carte:#fff;--texte:#4a3018;--doux:#8a6a48;--accent:#f08a12;--bord:#f0dcc0}
-*{box-sizing:border-box}
-body{margin:0;background:var(--fond);color:var(--texte);font-family:Nunito,system-ui,sans-serif}
-.haut{max-width:720px;margin:0 auto;padding:24px 16px 4px}
-a.retour{color:var(--doux);font-weight:800;text-decoration:none}
-h1{font-family:Fredoka,sans-serif;color:var(--accent);font-size:clamp(28px,7vw,40px);margin:10px 0 2px}
-.haut p{margin:0;color:var(--doux)}
-ol{list-style:none;max-width:720px;margin:0 auto;padding:20px 16px 48px;display:flex;flex-direction:column;gap:14px}
-li{background:var(--carte);border:2px solid var(--bord);border-radius:18px;padding:14px 16px}
-.tete{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
-.tete b{font-family:Fredoka,sans-serif;font-size:20px}
-.tete span{color:var(--doux);font-size:13px;font-weight:800}
-li ul{margin:8px 0 0;padding-left:20px;line-height:1.5}
-li img{width:100%;max-width:260px;border-radius:12px;margin-top:10px;border:2px solid var(--bord)}
-</style>
+<link rel="stylesheet" href="/assets/site.css">
 </head>
-<body>
-<div class="haut">
-  <a class="retour" href="./">← Nos jeux</a>
-  <h1>Journal : Cuisine du Port</h1>
-  <p>Ce qui change à chaque version, du plus récent au plus ancien.</p>
-</div>
-<ol>
-  <li><div class="tete"><b>Version 55</b><span>24 novembre 2026</span></div>
-    <ul><li>La baguette magique part tout de suite, sans fenêtre de confirmation.</li></ul></li>
-  <li><div class="tete"><b>Version 54</b><span>24 novembre 2026</span></div>
-    <ul><li>Défis, quêtes et médailles : les gains peuvent être multipliés par 4 avec une pub, ou par 2 avec des diamants.</li></ul>
-    <img src="images/cuisine-du-port_v55.webp" alt="Le jeu en version 55"></li>
-  <li><div class="tete"><b>Version 53</b><span>24 novembre 2026</span></div>
-    <ul><li>Le bandeau du bas garde toujours la même taille.</li><li>Les images du jeu sont rangées en fichiers séparés (plus léger).</li></ul></li>
-  <li><div class="tete"><b>Version 52</b><span>24 novembre 2026</span></div>
-    <ul><li>Progression plus lente : missions avec plusieurs objectifs, travaux plus chers, énergie +1 toutes les 2 minutes.</li></ul></li>
-  <li><div class="tete"><b>Versions 50 et 51</b><span>24 novembre 2026</span></div>
-    <ul><li>Une petite explication s'affiche la première fois qu'on gagne un objet spécial (joker, miroir, réveil, baguette).</li></ul></li>
-  <li><div class="tete"><b>Avant</b><span>22 et 23 novembre 2026</span></div>
-    <ul><li>Création du jeu, puis tous les dessins refaits avec Gemini.</li><li>Clients, restaurant à rénover en 6 lieux, coffres, tirelire, carte du tour du monde, animations.</li></ul></li>
-</ol>
+<body data-page="journal">
+<header class="barre"><div class="int">
+  <a class="logo" href="/"><i>★</i>Nos jeux</a>
+  <nav><a href="/">Accueil</a><a class="papa" href="/papa/">Papa</a><a class="oceane" href="/oceane/">Océane</a></nav>
+</div></header>
+<main id="journal"></main>
+<script src="/assets/site.js"></script>
 </body>
 </html>

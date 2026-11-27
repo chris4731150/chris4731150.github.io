@@ -1,0 +1,94 @@
+/* Style commun à toutes les pages du site (ne pas copier dans les jeux) */
+:root{
+  --fond:#fff8ee;--carte:#fff;--texte:#3f2a16;--doux:#86684a;--bord:#f0dcc0;
+  --papa:#f08a12;--papa-clair:#ffe3bf;--oceane:#139fb0;--oceane-clair:#c9f1f4;
+  --vert:#2fb36b;--vert-ombre:#1f8a50;
+  --c:var(--papa);--c-clair:var(--papa-clair);
+}
+.oceane{--c:var(--oceane);--c-clair:var(--oceane-clair)}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--fond);color:var(--texte);font-family:Nunito,system-ui,sans-serif;line-height:1.45}
+a{color:inherit}
+img{display:block}
+
+/* barre du haut */
+.barre{position:sticky;top:0;z-index:5;background:rgba(255,248,238,.92);backdrop-filter:blur(8px);border-bottom:2px solid var(--bord)}
+.barre .int{max-width:1040px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.logo{font-family:Fredoka,sans-serif;font-weight:700;font-size:22px;text-decoration:none;color:var(--papa);margin-right:auto;display:flex;align-items:center;gap:8px}
+.logo i{font-style:normal;width:30px;height:30px;border-radius:10px;background:linear-gradient(135deg,var(--papa),var(--oceane));color:#fff;display:grid;place-items:center;font-size:17px}
+.barre nav{display:flex;gap:6px}
+.barre nav a{text-decoration:none;font-weight:800;font-size:14.5px;padding:7px 12px;border-radius:999px;color:var(--doux)}
+.barre nav a:hover{background:#f6ead6}
+.barre nav a.actif{background:var(--c-clair);color:var(--texte)}
+.barre nav a.oceane.actif{background:var(--oceane-clair)}
+
+main{max-width:1040px;margin:0 auto;padding:0 16px 56px}
+h1,h2,h3{font-family:Fredoka,sans-serif;margin:0}
+
+/* en-têtes */
+.hero{text-align:center;padding:40px 0 18px}
+.hero h1{font-size:clamp(34px,9vw,54px);color:var(--papa);text-shadow:0 3px 0 var(--papa-clair)}
+.hero h1 span{color:var(--oceane);text-shadow:0 3px 0 var(--oceane-clair)}
+.hero p{margin:8px 0 0;color:var(--doux);font-size:17px}
+.titre-section{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin:36px 0 14px}
+.titre-section h2{font-size:26px}
+.titre-section span{color:var(--doux);font-weight:800;font-size:14px}
+
+/* créateurs */
+.createurs{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.createur{display:flex;align-items:center;gap:14px;padding:16px;border-radius:22px;background:var(--carte);border:2px solid var(--bord);box-shadow:0 6px 0 var(--bord);text-decoration:none;transition:transform .15s}
+.createur:hover{transform:translateY(-3px)}
+.avatar{flex:none;width:58px;height:58px;border-radius:18px;background:var(--c);color:#fff;font-family:Fredoka,sans-serif;font-size:28px;font-weight:700;display:grid;place-items:center;box-shadow:0 4px 0 var(--c-clair)}
+.createur b{font-family:Fredoka,sans-serif;font-size:22px;display:block}
+.createur small{color:var(--doux);font-weight:800}
+.createur .fleche{margin-left:auto;color:var(--c);font-size:24px;font-weight:800}
+
+/* bandeau d'une page créateur */
+.bandeau{display:flex;align-items:center;gap:18px;padding:34px 0 8px}
+.bandeau .avatar{width:76px;height:76px;font-size:38px;border-radius:24px}
+.bandeau h1{font-size:clamp(30px,8vw,44px);color:var(--c)}
+.bandeau p{margin:2px 0 0;color:var(--doux);font-weight:700}
+
+/* cartes de jeux */
+.grille{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:20px}
+.jeu{position:relative;background:var(--carte);border:2px solid var(--bord);border-radius:22px;overflow:hidden;box-shadow:0 6px 0 var(--bord);display:flex;flex-direction:column}
+.jeu .img{display:block;aspect-ratio:4/5;overflow:hidden;background:#cfe8f7}
+.jeu .img img{width:100%;height:100%;object-fit:cover;object-position:top;transition:transform .3s}
+.jeu:hover .img img{transform:scale(1.03)}
+.jeu .txt{padding:14px 16px 16px;display:flex;flex-direction:column;gap:8px;flex:1}
+.jeu h3{font-size:23px}
+.jeu p{margin:0;color:var(--doux);font-size:14.5px}
+.meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12.5px;font-weight:800;color:var(--doux)}
+.tag{padding:3px 9px;border-radius:999px;background:var(--c-clair);color:var(--texte);text-decoration:none}
+.pastille{position:absolute;top:12px;left:12px;padding:4px 10px;border-radius:999px;background:var(--vert);color:#fff;font-size:12px;font-weight:800;box-shadow:0 3px 0 var(--vert-ombre)}
+.boutons{display:flex;gap:8px;margin-top:auto;padding-top:6px}
+.btn{flex:1;text-align:center;text-decoration:none;font-weight:800;font-size:15px;padding:11px 8px;border-radius:14px;border:0;cursor:pointer}
+.jouer{background:var(--vert);color:#fff;box-shadow:0 4px 0 var(--vert-ombre)}
+.second{background:#f6ead6;color:var(--texte);box-shadow:0 4px 0 #e2cfae}
+.vide{border:2px dashed var(--bord);border-radius:22px;padding:34px 20px;text-align:center;color:var(--doux);font-weight:800}
+
+/* nouveautés */
+.fil{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.fil li{display:flex;gap:12px;align-items:flex-start;background:var(--carte);border:2px solid var(--bord);border-radius:16px;padding:12px 14px}
+.fil .pt{flex:none;width:12px;height:12px;border-radius:50%;background:var(--c);margin-top:6px}
+.fil a{font-weight:800;text-decoration:none}
+.fil a:hover{text-decoration:underline}
+.fil small{display:block;color:var(--doux);font-weight:700}
+
+/* journal */
+.retour{display:inline-block;margin-top:24px;color:var(--doux);font-weight:800;text-decoration:none}
+.journal-tete{display:flex;gap:18px;align-items:center;padding:14px 0 6px;flex-wrap:wrap}
+.journal-tete img{width:96px;height:120px;object-fit:cover;object-position:top;border-radius:16px;border:2px solid var(--bord)}
+.journal-tete h1{font-size:clamp(28px,7vw,40px);color:var(--c)}
+.journal-tete p{margin:4px 0 0;color:var(--doux)}
+.versions{list-style:none;padding:0;margin:20px 0 0;display:flex;flex-direction:column;gap:14px;max-width:760px}
+.versions>li{background:var(--carte);border:2px solid var(--bord);border-left:6px solid var(--c);border-radius:18px;padding:14px 16px}
+.versions .tete{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.versions .tete b{font-family:Fredoka,sans-serif;font-size:20px}
+.versions .tete span{color:var(--doux);font-size:13px;font-weight:800}
+.versions ul{margin:8px 0 0;padding-left:20px}
+.versions img{width:100%;max-width:260px;border-radius:12px;margin-top:10px;border:2px solid var(--bord)}
+
+footer{text-align:center;color:var(--doux);font-size:13px;padding:0 16px 30px}
+@media (max-width:520px){.barre nav a{padding:6px 9px;font-size:13.5px}.logo{font-size:19px}}

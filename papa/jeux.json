@@ -1,0 +1,32 @@
+{
+  "createur": "Papa",
+  "jeux": [
+    {
+      "id": "cuisine-du-port",
+      "titre": "Cuisine du Port",
+      "description": "Fusionne les ingrédients, sers les clients et rénove ton restaurant au bord de la mer.",
+      "image": "images/cuisine-du-port_v55.webp",
+      "fond": "#cfe8f7",
+      "journal": [
+        { "version": "55", "date": "2026-11-24", "changements": ["La baguette magique part tout de suite, sans fenêtre de confirmation."] },
+        { "version": "54", "date": "2026-11-24", "changements": ["Défis, quêtes et médailles : les gains peuvent être multipliés par 4 avec une pub, ou par 2 avec des diamants."], "image": "images/cuisine-du-port_v55.webp" },
+        { "version": "53", "date": "2026-11-24", "changements": ["Le bandeau du bas garde toujours la même taille.", "Les images du jeu sont rangées en fichiers séparés (plus léger)."] },
+        { "version": "52", "date": "2026-11-24", "changements": ["Progression plus lente : missions avec plusieurs objectifs, travaux plus chers, énergie +1 toutes les 2 minutes."] },
+        { "version": "50 et 51", "date": "2026-11-24", "changements": ["Une petite explication s'affiche la première fois qu'on gagne un objet spécial (joker, miroir, réveil, baguette)."] },
+        { "version": "Avant", "date": "2026-11-22", "dateTexte": "22 et 23 novembre 2026", "changements": ["Création du jeu, puis tous les dessins refaits avec Gemini.", "Clients, restaurant à rénover en 6 lieux, coffres, tirelire, carte du tour du monde, animations."] }
+      ]
+    },
+    {
+      "id": "neon-flipper",
+      "titre": "Néon Flipper",
+      "description": "Flipper néon 3D nouvelle génération : modes, OVERDRIVE 4 billes, jeux de lumière, voix et vibrations.",
+      "image": "images/neon-flipper.webp",
+      "fond": "#07020f",
+      "journal": [
+        { "version": "3", "date": "2026-11-24", "changements": ["Écran couleur animé, plateau qui change de couleur selon l'action.", "3 modes (Frénésie, Ruée des rampes, Hurry-up) puis OVERDRIVE : 4 billes, tous les points ×3.", "Hologramme 3D, traînée lumineuse, ralenti et zoom sur les gros coups, voix d'annonceur, vibrations, secousse et TILT."], "image": "images/neon-flipper.webp" },
+        { "version": "2", "date": "2026-11-24", "changements": ["Le flipper passe en 3D : rampes, bumpers lumineux, multiball et musique synthwave."] },
+        { "version": "1", "date": "2026-11-24", "changements": ["Première version du flipper néon, en 2D."] }
+      ]
+    }
+  ]
+}

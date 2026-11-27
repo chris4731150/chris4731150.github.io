@@ -4,62 +4,28 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Nos jeux</title>
+<meta name="description" content="Les jeux créés en famille par Papa et Océane.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&family=Nunito:wght@600;800&display=swap" rel="stylesheet">
-<style>
-:root{--fond:#fff6e8;--carte:#fff;--texte:#4a3018;--doux:#8a6a48;--accent:#f08a12;--vert:#2fb36b;--bord:#f0dcc0}
-*{box-sizing:border-box}
-body{margin:0;background:var(--fond);color:var(--texte);font-family:Nunito,system-ui,sans-serif}
-header{text-align:center;padding:36px 16px 12px}
-h1{font-family:Fredoka,sans-serif;font-size:clamp(30px,8vw,46px);margin:0;color:var(--accent);text-shadow:0 3px 0 #ffd9a8}
-header p{margin:8px 0 0;color:var(--doux);font-size:16px}
-main{max-width:980px;margin:0 auto;padding:20px 16px 48px;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px}
-.jeu{background:var(--carte);border:2px solid var(--bord);border-radius:22px;overflow:hidden;box-shadow:0 6px 0 var(--bord);display:flex;flex-direction:column}
-.jeu .img{aspect-ratio:4/5;overflow:hidden;background:#cfe8f7}
-.jeu img{width:100%;height:100%;object-fit:cover;object-position:top}
-.jeu .txt{padding:14px 16px 16px;display:flex;flex-direction:column;gap:8px;flex:1}
-.jeu h2{font-family:Fredoka,sans-serif;margin:0;font-size:24px}
-.jeu p{margin:0;color:var(--doux);font-size:14.5px;line-height:1.4}
-.ver{font-size:12.5px;font-weight:800;color:var(--doux)}
-.boutons{display:flex;gap:8px;margin-top:auto;padding-top:6px}
-.btn{flex:1;text-align:center;text-decoration:none;font-weight:800;font-size:15px;padding:11px 8px;border-radius:14px}
-.jouer{background:var(--vert);color:#fff;box-shadow:0 4px 0 #1f8a50}
-.journal{background:#f6ead6;color:var(--texte);box-shadow:0 4px 0 #e2cfae}
-.bientot{border-style:dashed;box-shadow:none;align-items:center;justify-content:center;min-height:200px;color:var(--doux);font-weight:800;text-align:center;padding:20px}
-footer{text-align:center;color:var(--doux);font-size:13px;padding:0 16px 30px}
-</style>
+<link rel="stylesheet" href="/assets/site.css">
 </head>
-<body>
-<header>
-  <h1>Nos jeux</h1>
-  <p>Les jeux qu'on crée en famille. Clique et joue !</p>
-</header>
+<body data-page="accueil">
+<header class="barre"><div class="int">
+  <a class="logo" href="/"><i>★</i>Nos jeux</a>
+  <nav><a class="actif" href="/">Accueil</a><a href="/papa/">Papa</a><a class="oceane" href="/oceane/">Océane</a></nav>
+</div></header>
 <main>
-  <article class="jeu">
-    <div class="img"><img src="images/cuisine-du-port_v55.webp" alt="Aperçu du jeu Cuisine du Port"></div>
-    <div class="txt">
-      <h2>Cuisine du Port</h2>
-      <p>Fusionne les ingrédients, sers les clients et rénove ton restaurant au bord de la mer.</p>
-      <span class="ver">Version 55 · 24 novembre 2026</span>
-      <div class="boutons">
-        <a class="btn jouer" href="cuisine-du-port/">Jouer</a>
-        <a class="btn journal" href="journal.html">Journal</a>
-      </div>
-    </div>
-  </article>
-  <article class="jeu">
-    <div class="img" style="background:#07020f"><img src="images/neon-flipper.webp" alt="Aperçu du jeu Néon Flipper"></div>
-    <div class="txt">
-      <h2>Néon Flipper</h2>
-      <p>Flipper néon 3D nouvelle génération : modes, OVERDRIVE 4 billes, jeux de lumière, voix et vibrations.</p>
-      <span class="ver">Version 3 · 24 novembre 2026</span>
-      <div class="boutons">
-        <a class="btn jouer" href="neon-flipper/">Jouer</a>
-      </div>
-    </div>
-  </article>
-  <div class="jeu bientot">Le prochain jeu arrive ici…</div>
+  <section class="hero">
+    <h1>Nos <span>jeux</span></h1>
+    <p>Les jeux qu'on crée en famille. Clique et joue !</p>
+  </section>
+  <section class="createurs" id="createurs"></section>
+  <div class="titre-section"><h2>Tous les jeux</h2><span id="nbJeux"></span></div>
+  <section class="grille" id="tous"></section>
+  <div class="titre-section"><h2>Dernières nouveautés</h2></div>
+  <ol class="fil" id="fil"></ol>
 </main>
-<footer>Le jeu garde ta partie sur ton téléphone. Pour la nouvelle version : recharge la page.</footer>
+<footer>Chaque jeu garde ta partie sur ton appareil. Pour voir une nouvelle version : recharge la page.</footer>
+<script src="/assets/site.js"></script>
 </body>
 </html>
