@@ -53,7 +53,7 @@ async function pageAccueil() {
 
 async function pageCreateur(id) {
   const c = createur(id), jeux = (await charger(c)).sort(parDate);
-  document.title = 'Les jeux ' + de(c.nom).replace('&#39;','''');
+  document.title = 'Les jeux ' + de(c.nom);
   const maj = jeux.length ? derniere(jeux[0]).date : null;
   document.getElementById('bandeau').innerHTML = `<span class="avatar">${c.initiale}</span><div><h1>Les jeux ${de(c.nom)}</h1>
     <p>${jeux.length ? jeux.length + ' jeu' + (jeux.length > 1 ? 'x' : '') + (maj ? ' · dernière mise à jour le ' + dateFr(maj) : '') : 'Les premiers jeux arrivent bientôt !'}</p></div>`;
