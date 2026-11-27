@@ -8,6 +8,7 @@
       "image": "images/couronne-de-dragons.webp",
       "fond": "#0d0705",
       "journal": [
+        { "version": "4", "date": "2026-11-27", "changements": ["Plateau plein cadre et très coloré : océan, grand fleuve bleu, forêts, coucher de soleil avec volcan et cité dans les coins.", "Grosse tête de dragon entre les palettes, palettes jaunes, anneau de lumières autour des bumpers, lumières de progression aux tirs."] },
         { "version": "3", "date": "2026-11-27", "changements": ["Plateau plus grand et bien rectangulaire : vue presque de dessus, il remplit tout l'écran."] },
         { "version": "2", "date": "2026-11-27", "changements": ["La bille n'est plus fluo : vraie bille en acier, sans halo ni traînée lumineuse."] },
         { "version": "1", "date": "2026-11-27", "changements": ["Nouveau flipper façon café : plateau illustré, écran à points orange, dragon et château en 3D.", "6 maisons à choisir, 6 batailles différentes, multiball du dragon, siège royal et mode final La Couronne.", "Trésor, quêtes, combos, skill shot, voix et musique épique."], "image": "images/couronne-de-dragons.webp" }
