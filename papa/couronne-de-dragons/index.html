@@ -337,7 +337,7 @@ renderer.setPixelRatio(Math.min(2,devicePixelRatio||1));renderer.toneMapping=THR
 zone.appendChild(renderer.domElement);
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x0d0705);
 const pm=new THREE.PMREMGenerator(renderer);const envTex=pm.fromScene(new RoomEnvironment(),.04).texture;
-const camera=new THREE.PerspectiveCamera(42,1,10,5000);
+const camera=new THREE.PerspectiveCamera(30,1,10,6000);
 scene.add(new THREE.HemisphereLight(0xfff0d8,0x3a2010,.55));
 const dl=new THREE.DirectionalLight(0xffe8c8,.9);dl.position.set(-150,600,500);scene.add(dl);
 const neon=(hex,k)=>new THREE.MeshBasicMaterial({color:new THREE.Color(hex).multiplyScalar(k)});
@@ -554,12 +554,12 @@ const boucheW=new THREE.Vector3(),cibleFeu=P(170,330,0),dirFeu=new THREE.Vector3
 // post-traitement
 const composer=new EffectComposer(renderer);composer.addPass(new RenderPass(scene,camera));
 const bloom=new UnrealBloomPass(new THREE.Vector2(256,256),.7,.4,1.0);composer.addPass(bloom);composer.addPass(new OutputPass());
-const cible=new THREE.Vector3(0,0,-30),dirCam=new THREE.Vector3(0,1.5,.85).normalize();let camPos=new THREE.Vector3(),camD=1000,suiviZ=0;
+const cible=new THREE.Vector3(0,0,-30),dirCam=new THREE.Vector3(0,1,.2).normalize();let camPos=new THREE.Vector3(),camD=1000,suiviZ=0;
 function cadrer(){const r=zone.getBoundingClientRect();renderer.setSize(r.width,r.height,false);composer.setSize(r.width,r.height);camera.aspect=r.width/r.height;camera.updateProjectionMatrix();
-  const coins=[P(20,30,0),P(380,30,0),P(20,724,26),P(380,724,26),P(0,360,26),P(400,360,26),P(200,20,26),P(330,30,105),P(70,40,90)];let best=null;
+  const coins=[P(20,30,0),P(380,30,0),P(20,724,26),P(380,724,26),P(0,360,26),P(400,360,26),P(200,20,26)];let best=null;
   for(let tz=-80;tz<=120;tz+=10){cible.set(0,0,tz);let lo=200,hi=4000;
    for(let k=0;k<26;k++){const d=(lo+hi)/2;camera.position.copy(cible).addScaledVector(dirCam,d);camera.lookAt(cible);camera.updateMatrixWorld();
-    const ok=coins.every(c=>{const v=c.clone().project(camera);return Math.abs(v.x)<.98&&Math.abs(v.y)<.97});if(ok)hi=d;else lo=d}
+    const ok=coins.every(c=>{const v=c.clone().project(camera);return Math.abs(v.x)<.995&&Math.abs(v.y)<.99});if(ok)hi=d;else lo=d}
    if(!best||hi<best.d-1)best={d:hi,tz}}
   let mieux=null;for(let tz=-120;tz<=160;tz+=4){cible.set(0,0,tz);camera.position.copy(cible).addScaledVector(dirCam,best.d*1.01);camera.lookAt(cible);camera.updateMatrixWorld();
    const ys=coins.map(c=>c.clone().project(camera));if(!ys.every(v=>Math.abs(v.x)<.99&&Math.abs(v.y)<.99))continue;const a=Math.abs(Math.max(...ys.map(v=>v.y))+Math.min(...ys.map(v=>v.y)));if(!mieux||a<mieux.a)mieux={a,tz}}
