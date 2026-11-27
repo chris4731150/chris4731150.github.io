@@ -1,0 +1,772 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#120606">
+<title>Le Réveil du Dragon</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@600;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--or:#ffd47a;--fond:#120606}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--fond);color:#fff;font-family:Cinzel,Georgia,serif;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
+#hud{position:fixed;left:0;right:0;top:0;height:96px;padding-top:env(safe-area-inset-top);display:flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(#2a0c0c,#120606);border-bottom:2px solid #5a2018;z-index:2}
+#dmdBox{height:84px;flex:0 1 360px;min-width:0;border-radius:8px;padding:5px;background:#050201;border:3px solid #6a3a22;box-shadow:inset 0 0 0 2px #1a0f06,0 0 18px #ff5a1a33}
+#dmd{width:100%;height:100%;display:block}
+.bt{background:none;border:1.5px solid #c8692a;color:var(--or);border-radius:10px;font-size:14px;width:34px;height:30px;flex:none}
+.bt.off{opacity:.35}
+#jeu{position:fixed;left:0;right:0;top:96px;bottom:0}
+#jeu canvas{display:block;width:100%;height:100%}
+.pop{position:absolute;pointer-events:none;font-weight:900;font-size:15px;transform:translate(-50%,-50%);animation:monte 1s ease-out forwards;white-space:nowrap;z-index:3;-webkit-text-stroke:.6px #2a1206}
+@keyframes monte{from{opacity:1;margin-top:0}to{opacity:0;margin-top:-46px}}
+.ecran{position:fixed;inset:0;overflow-y:auto;padding:20px 16px;background:radial-gradient(circle at 50% 30%,#5a160cd8,#120606f2 70%);z-index:5;touch-action:pan-y}
+.ecran[hidden]{display:none}
+.contenu{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;max-width:430px;margin:0 auto}
+.titre{font-family:'Cinzel Decorative',Cinzel,serif;font-weight:900;font-size:clamp(32px,10vw,54px);line-height:1;background:linear-gradient(#fff6c8,#ffb04a 40%,#d8401a 62%,#ffd080);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 3px 0 #5a1408) drop-shadow(0 0 18px #ff4a1a88)}
+.titre span{display:block;font-size:.62em;margin-top:4px}
+.sous{margin:0;font-weight:800;color:var(--or);letter-spacing:2px;font-size:14px}
+.missions{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;font-family:system-ui,sans-serif;font-size:12px;color:#ffe2c0}
+.missions div{background:#2a0c08aa;border:1px solid #7a3a22;border-radius:10px;padding:6px 2px}
+.missions span{display:block;font-size:22px}
+.btn{font:inherit;font-weight:900;font-size:22px;letter-spacing:3px;color:#2a1206;background:linear-gradient(#fff0b0,#ffa85a 50%,#c84a2a);border:2px solid #fff3c8;border-radius:14px;padding:13px 48px;box-shadow:0 5px 0 #6a2a10,0 0 22px #ff6a2a88;animation:pulse 1.6s infinite}
+@keyframes pulse{50%{box-shadow:0 5px 0 #6a2a10,0 0 34px #ff8a4acc}}
+.big{font-size:40px;font-weight:900;color:var(--or);text-shadow:0 0 14px #ff5a1a}
+details.regles{max-width:380px;text-align:left;font-family:system-ui,sans-serif;font-size:13.5px;color:#f0dcc0;background:#1a0806aa;border:1px solid #6a3a22;border-radius:12px;padding:8px 12px}
+details.regles summary{cursor:pointer;font-family:Cinzel,serif;font-weight:800;color:var(--or);text-align:center}
+details.regles ul{margin:8px 0 2px;padding-left:4px;list-style:none;display:flex;flex-direction:column;gap:6px}
+details.regles b{color:#fff}
+.perk{margin:0;font-family:system-ui,sans-serif;font-size:14px;color:#ffe2b0}
+.rec{font-size:15px;color:var(--or)}
+#charge{position:fixed;right:6px;bottom:20px;width:8px;height:0;background:var(--or);box-shadow:0 0 12px #ff9a2a;border-radius:4px;z-index:3}
+#erreur{position:fixed;inset:auto 10px 10px 10px;color:#f88;font:12px monospace;z-index:9}
+</style>
+</head>
+<body>
+<div id="hud"><button class="bt" id="son" aria-label="Musique">♪</button><div id="dmdBox"><canvas id="dmd"></canvas></div><button class="bt" id="sfx" aria-label="Sons et voix">🔊</button></div>
+<div id="jeu"></div>
+<div id="charge"></div>
+<div class="ecran" id="menu"><div class="contenu">
+  <div class="titre">Le Réveil<span>du Dragon</span></div>
+  <p class="sous">6 MISSIONS · 1 DRAGON</p>
+  <div class="missions" id="listeMissions"></div>
+  <button class="btn" id="jouer">JOUER</button>
+  <details class="regles"><summary>Comment jouer</summary><ul>
+    <li>👆 Touche <b>gauche / droite</b> pour les palettes. <b>Maintiens à droite</b> puis relâche pour lancer. <b>Glisse vers le haut</b> pour secouer (attention au TILT).</li>
+    <li>🍺 Vise la <b>TAVERNE</b> pour lancer une mission. Les lance-pierres changent la mission proposée.</li>
+    <li>🏆 Réussis une mission : tu gagnes sa <b>relique</b>. Les 6 reliques : <b>LE DERNIER VOL</b> à la grotte (4 billes, tout rapporte).</li>
+    <li>🥚 Les 3 <b>ŒUFS</b> allument le lock dans la <b>GROTTE</b> du dragon. 2 billes bloquées : <b>MULTIBALL DU DRAGON</b>, jackpots aux rampes et orbites, super jackpot à la grotte.</li>
+    <li>⚡ Couloirs du haut = multiplicateur. Écailles, spinner, combos, skill shot et bonus de fin de bille.</li>
+  </ul></details>
+  <div class="rec" id="recMenu"></div>
+</div></div>
+<div class="ecran" id="fin" hidden><div class="contenu">
+  <div class="titre" style="font-size:clamp(30px,9vw,46px)">Partie<span>terminée</span></div>
+  <div class="big" id="scoreFin">0</div>
+  <p class="perk" id="detailFin"></p>
+  <div class="rec" id="recFin"></div>
+  <button class="btn" id="rejouer">REJOUER</button>
+</div></div>
+<div id="erreur"></div>
+<script>window.addEventListener('error',e=>{document.getElementById('erreur').textContent='Erreur : '+e.message})</script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import {EffectComposer} from 'three/addons/postprocessing/EffectComposer.js';
+import {RenderPass} from 'three/addons/postprocessing/RenderPass.js';
+import {UnrealBloomPass} from 'three/addons/postprocessing/UnrealBloomPass.js';
+import {OutputPass} from 'three/addons/postprocessing/OutputPass.js';
+import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
+
+const W=400,H=740,GRAV=1350,SUB=10,BR=9;
+const $=id=>document.getElementById(id);
+const fr=n=>Math.round(n).toLocaleString('fr-FR');
+const hexCss=h=>'#'+h.toString(16).padStart(6,'0');
+let rec=0;try{rec=+localStorage.getItem('reveil_record')||0}catch(e){}
+const C={jaune:0xffe94d,vert:0x3dd66a,orange:0xff7a1a,blanc:0xffffff,rouge:0xff2a10,bleu:0x3a9be0,or:0xffc040,ambre:0xff9a30,violet:0xb07aff,cyan:0x19d6ff};
+
+/* ================= MISSIONS ================= */
+const MODES=[
+ {n:'VILLAGE EN FEU',c:'FEU',e:'🔥',col:0xff5a1a,type:'feux',but:5,val:20000,aide:'TIRS ALLUMÉS'},
+ {n:'CHASSE AUX ŒUFS',c:'ŒUFS',e:'🥚',col:0xf0e0b0,type:'compte',coups:['oeufs'],but:6,val:15000,aide:'CIBLES ŒUFS'},
+ {n:'PONT DES TROLLS',c:'PONT',e:'🌉',col:0x3a9be0,type:'compte',coups:['orbiteG','orbiteD'],but:4,val:25000,aide:'ORBITES'},
+ {n:'MINE D’OR',c:'MINE',e:'⛏️',col:0xffc040,type:'compte',coups:['ecailles'],but:6,val:20000,aide:'ÉCAILLES'},
+ {n:'COURSE DES RAMPES',c:'COURSE',e:'🏇',col:0x3dd66a,type:'alt',but:4,val:30000,aide:'RAMPES ALTERNÉES'},
+ {n:'TEMPÊTE',c:'TEMPÊTE',e:'🌪️',col:0xb07aff,type:'hurry',coup:'grotte',v0:150000,aide:'GROTTE'}];
+const SHOTS=['orbiteG','rampeG','oeufs','taverne','grotte','rampeD','orbiteD','ecailles'];
+const SHOTCOL={orbiteG:0x3a9be0,rampeG:0x3dd66a,oeufs:0xf0e0b0,taverne:0xffc040,grotte:0xff2a10,rampeD:0xb07aff,orbiteD:0x19d6ff,ecailles:0xff7a1a};
+const JP=['rampeG','rampeD','orbiteG','orbiteD'];
+const FEUX=['orbiteG','rampeG','oeufs','grotte','rampeD','orbiteD','ecailles'];
+
+/* ================= TABLE (2D) ================= */
+const segs=[];
+function seg(x1,y1,x2,y2,o){const s=Object.assign({x1,y1,x2,y2,r:3,e:.45,kind:'mur',grp:0},o||{});segs.push(s);return s}
+{const N=30;let px=20,py=200;for(let i=1;i<=N;i++){const a=Math.PI+Math.PI*i/N,x=200+180*Math.cos(a),y=200+180*Math.sin(a);seg(px,py,x,y,{arc:1});px=x;py=y}}
+seg(20,200,20,555);seg(20,555,112,630);
+seg(380,200,380,724);seg(352,250,352,724,{grp:1});seg(352,712,380,712);
+seg(380,214,352,248,{kind:'porte',r:2});
+seg(352,555,260,630,{grp:1});
+// orbites
+seg(56,252,56,430);seg(318,236,318,330,{grp:1});
+// couloirs du haut
+for(const x of [226,256,286,316])seg(x,92,x,120,{r:4,kind:'poteau'});
+// lance-pierres
+function sling(m){const X=x=>m?372-x:x;seg(X(60),470,X(60),550,{grp:m?1:0});seg(X(60),550,X(100),575,{grp:m?1:0});return seg(X(60),470,X(100),575,{kind:'sling',e:.3,flash:0})}
+const slings=[sling(false),sling(true)];
+// rampes
+seg(72,332,72,368);seg(116,332,116,368);seg(72,332,116,332,{kind:'rampe',id:'L',r:2});
+seg(268,292,268,330,{grp:1});seg(312,292,312,330,{grp:1});seg(268,292,312,292,{kind:'rampe',id:'R',r:2});
+// grotte du dragon (couloir central)
+seg(176,165,176,255);seg(224,165,224,255,{grp:1});seg(176,165,224,165);
+// taverne (mur arrière)
+seg(130,284,162,284,{r:3});
+// cibles œufs (diagonale)
+const oeufs=[.18,.5,.82].map((u,i)=>{const cx=108+58*u,cy=236-58*u,h=8*.707;return seg(cx-h,cy+h,cx+h,cy-h,{r:4,kind:'oeuf',idx:i,e:.35})});
+// écailles (cibles tombantes, mur droit)
+const drops=[0,1,2].map(i=>seg(345,362+i*28,345,384+i*28,{r:4,kind:'drop',idx:i,e:.35}));
+const bumpers=[{x:252,y:160,r:18,f:0},{x:300,y:166,r:18,f:0},{x:274,y:212,r:18,f:0}];
+const couloirs=[241,271,301];
+const TROUS={grotte:{x:200,y:184,r:14},taverne:{x:146,y:302,r:13}};
+function flip(px,side){const l=side<0;return{px,py:630,len:60,side,rest:l?.5:Math.PI-.5,up:l?-.45:Math.PI+.45,ang:l?.5:Math.PI-.5,av:0,on:false}}
+const fl=[flip(112,-1),flip(260,1)];
+const P=(x,y,z)=>new THREE.Vector3(x-200,z||0,y-370);
+const RAMPES={
+  R:{pts:[[290,296,2],[292,240,18],[300,170,40],[290,96,62],[236,52,80],[160,52,84],[96,84,70],[58,160,54],[40,260,38],[36,400,22],[40,490,6],[42,516,0]],sortie:[42,516,0,240]},
+  L:{pts:[[94,336,2],[92,282,18],[90,200,40],[108,128,58],[164,88,68],[240,88,70],[302,112,62],[330,176,50],[338,282,34],[334,420,18],[332,494,6],[332,516,0]],sortie:[332,516,0,240]}};
+for(const k in RAMPES){const r=RAMPES[k];r.courbe=new THREE.CatmullRomCurve3(r.pts.map(p=>P(p[0],p[1],p[2]+9)));r.len=r.courbe.getLength()}
+const FLECHES={orbiteG:{x:38,y:452,a:0},rampeG:{x:94,y:392,a:0},oeufs:{x:156,y:228,a:Math.PI/4,s:.75},taverne:{x:146,y:334,a:0},grotte:{x:200,y:282,a:0},rampeD:{x:290,y:354,a:0},orbiteD:{x:335,y:346,a:0,s:.7},ecailles:{x:318,y:400,a:-Math.PI/2,s:.75}};
+const COLONNES=['orbiteG','rampeG','taverne','grotte','rampeD'];
+const RELIQUES=[[186,490],[160,518],[212,518],[160,550],[212,550],[186,578]];
+
+/* ================= ETAT ================= */
+let G=null,billes=[],timers=[],bandeau=null,shake=0,flashG=0,punch=0,lentJusqua=0,feu=0;
+function nouvellePartie(){
+  G={etat:'jeu',score:0,balls:3,bille:1,mult:1,lanes:[0,0,0],lc:[0,0,0],oeufs:[0,0,0],drop:[0,0,0],dropAnim:[0,0,0],lockLit:false,locked:0,
+     multi:null,jp:0,superJP:false,mode:null,modeOK:[0,0,0,0,0,0],sel:0,reliques:0,niveau:0,ecaillesN:0,tirs:{},
+     save:0,arm:true,extra:false,extraE:false,t:0,charge:0,lent:0,skill:0,skillFin:0,combo:0,comboT:-9,spin:0,spinA:0,spinCompte:0,orbT:-9,orbDT:-9,bonusB:0,tilt:false,secousses:[],missions:0,jackpots:0};
+  billes=[];timers=[];bandeau=null;nouvelleBille();
+}
+function nouvelleBille(){billes.push({x:366,y:702,vx:0,vy:0,r:BR});G.skill=Math.floor(Math.random()*3);G.skillFin=0;G.tilt=false;G.secousses=[]}
+const dansCouloir=b=>!b.rampe&&b.x>352&&b.y>640;
+const auRepos=b=>dansCouloir(b)&&Math.abs(b.vy)<40&&b.y>690;
+const suivant=i=>{for(let k=1;k<=6;k++){const j=(i+k)%6;if(!G.modeOK[j])return j}return i};
+function plus(n,x,y,col){n=Math.round(n*G.mult);G.score+=n;if(x!=null)popup(fr(n),x,y,col);
+  if(!G.extra&&G.score>=600000){G.extra=true;G.balls++;banniere('BILLE EN PLUS !','#ffd47a',2.2,{scene:'jackpot'});son('fanfare');voix('Bille en plus !')}}
+function banniere(t,col,d,o){bandeau=Object.assign({t,col:col||'#ffd47a',l:d||2.2,d:d||2.2},o||{})}
+function apres(s,f){timers.push({t:G.t+s,f})}
+function combo(x,y){if(G.t-G.comboT<4)G.combo++;else G.combo=1;G.comboT=G.t;if(G.combo>=2){plus(3000*G.combo,x,y+20,'#ffe94d');banniere('COMBO ×'+G.combo,'#ffe94d',1.3);son('combo');if(G.combo>=3)voix('Combo !')}}
+function grosCoup(lent,force){flashG=1;punch=force||1;shake=Math.max(shake,10);if(lent)lentJusqua=performance.now()+lent*1000;vib([40,40,90])}
+function lancerBilles(n,depuis){for(let k=0;k<n;k++)apres(.6+k*.7,()=>{if(depuis==='grotte')billes.push({x:200,y:200,vx:(Math.random()-.5)*120,vy:380,r:BR,cool:G.t+1});else billes.push({x:366,y:702,vx:0,vy:-(1800+Math.random()*250),r:BR});son('lance')})}
+function tirage(k,excl){const L=FEUX.filter(s=>!excl.includes(s)).sort(()=>Math.random()-.5);return L.slice(0,k)}
+
+/* ---------- tirs ---------- */
+function coup(nom,x,y){
+  if(!G||G.tilt)return;
+  G.tirs[nom]=(G.tirs[nom]||0)+1;
+  const maj=nom!=='bumpers';
+  if(G.multi==='vol'&&maj&&nom!=='grotte'){plus(50000,x,y,'#ffd47a');banniere('DERNIER VOL : '+fr(50000*G.mult),'#ffd47a',1.2,{scene:'jackpot'});son('jackpot');grosCoup(.25,.5);souffle(.5)}
+  const Mo=G.mode;
+  if(Mo){const M=MODES[Mo.i],col=hexCss(M.col);
+    if(M.type==='feux'&&Mo.feux.includes(nom)){Mo.n++;Mo.feux=Mo.feux.filter(s=>s!==nom);Mo.feux.push(tirage(1,[...Mo.feux,nom])[0]);plus(M.val*(1+Mo.n*.25),x,y,col);son('epee');banniere('FEU ÉTEINT '+Mo.n+'/'+M.but,col,1.2,{scene:'epees'});if(Mo.n>=M.but)gagnerMode()}
+    else if(M.type==='compte'&&M.coups.includes(nom)){Mo.n++;plus(M.val*(1+Mo.n*.25),x,y,col);son('epee');banniere(M.c+' '+Mo.n+'/'+M.but,col,1.2,{scene:'epees'});if(Mo.n>=M.but)gagnerMode()}
+    else if(M.type==='alt'&&nom===Mo.lit){Mo.n++;Mo.lit=nom==='rampeG'?'rampeD':'rampeG';plus(M.val*(1+Mo.n*.25),x,y,col);son('epee');banniere('COURSE '+Mo.n+'/'+M.but,col,1.2,{scene:'epees'});if(Mo.n>=M.but)gagnerMode()}
+    else if(M.type==='hurry'&&nom===M.coup){plus(Mo.val,x,y,col);gagnerMode()}}
+  if(G.multi==='dragon'&&JP.includes(nom)){G.jp++;G.jackpots++;const v=30000+10000*G.jp;plus(v,x,y,'#ffd47a');banniere('JACKPOT !','#ffd47a',1.6,{scene:'jackpot'});son('jackpot');voix('Jackpot !');grosCoup(.5,1);souffle(.8);
+    if(G.jp>=3&&!G.superJP){G.superJP=true;apres(1.7,()=>{banniere('SUPER JACKPOT','#ffd47a',2,{scene:'chateau',sous:'À LA GROTTE'});voix('Super jackpot à la grotte !')})}}
+}
+function lancerMode(i){const M=MODES[i];G.mode={i,fin:G.t+45,duree:45,n:0,lit:'rampeG',val:M.v0||0,feux:M.type==='feux'?tirage(2,[]):null};G.save=Math.max(G.save,G.t+8);
+  banniere(M.n,hexCss(M.col),3,{scene:'epees',sous:'MISSION : '+M.aide});son('cor');voix('Mission : '+M.n.toLowerCase()+' !');grosCoup(.5,.8)}
+function gagnerMode(){const i=G.mode.i,M=MODES[i];G.mode=null;G.modeOK[i]=1;G.reliques++;G.missions++;plus(100000+25000*G.reliques);G.bonusB+=10000;
+  banniere('RELIQUE GAGNÉE','#ffd47a',3,{scene:'bouclier',lettre:M.c[0],sous:M.c});son('victoire');voix('Mission réussie ! Relique gagnée !');grosCoup(1,1.2);
+  G.sel=suivant(i);
+  if(G.modeOK.every(v=>v))apres(3.2,()=>{banniere('LE DERNIER VOL','#ffd47a',2.6,{scene:'dragon',sous:'VISE LA GROTTE'});voix('Le dragon se réveille ! Visez la grotte !')})}
+function perdreMode(){if(!G.mode)return;G.mode=null;banniere('MISSION RATÉE','#ff6a3a',1.8,{scene:'epees'});son('perdu');voix('Mission ratée')}
+function taverne(b){son('porte');shake=5;vib(30);etincelles(TROUS.taverne.x,TROUS.taverne.y,C.or,18);G.bonusB+=1000;
+  if(G.multi||G.mode){plus(5000,146,280,'#ffd47a');coup('taverne',146,280);return}
+  if(G.modeOK.some(v=>!v)){if(G.modeOK[G.sel])G.sel=suivant(G.sel);lancerMode(G.sel);coup('taverne',146,280);return}
+  mystere();coup('taverne',146,280)}
+function mystere(){const r=Math.random();let t;
+  if(!G.extraE&&r<.08){G.extraE=true;G.balls++;t='BILLE EN PLUS'}
+  else if(r<.4){const v=25000+10000*G.niveau;plus(v);t=fr(v*G.mult)}
+  else if(r<.58){G.save=G.t+20;t='BILLE SAUVÉE 20 S'}
+  else if(r<.76){G.mult=Math.min(5,G.mult+1);t='MULTIPLICATEUR ×'+G.mult}
+  else if(!G.lockLit){G.lockLit=true;t='LOCK ALLUMÉ'}else{plus(40000);t=fr(40000*G.mult)}
+  banniere('MYSTÈRE','#ffd47a',2.4,{scene:'tresor',sous:t});son('or');voix('Mystère !');grosCoup(.4,.6)}
+function grotte(b){son('roar');shake=6;vib(40);etincelles(TROUS.grotte.x,TROUS.grotte.y,C.rouge,22);G.bonusB+=1500;
+  coup('grotte',200,170);
+  if(G.multi==='dragon'&&G.superJP){G.superJP=false;G.jp=0;plus(200000,200,160,'#ffd47a');banniere('SUPER JACKPOT !','#ffd47a',2.6,{scene:'dragon'});voix('Super jackpot !');grosCoup(1.2,1.4);souffle(2);return}
+  if(G.multi==='vol'){plus(250000,200,160,'#ffd47a');banniere('SUPER JACKPOT ROYAL','#ffd47a',2.6,{scene:'dragon'});son('fanfare');voix('Super jackpot !');grosCoup(1.2,1.4);souffle(2);return}
+  if(G.multi||G.mode){plus(5000,200,160,'#fff');return}
+  if(G.modeOK.every(v=>v)){G.multi='vol';banniere('LE DERNIER VOL !','#ffd47a',3.2,{scene:'dragon',sous:'TOUS LES TIRS : 50 000'});voix('Le dernier vol ! Tous les tirs rapportent !');son('fanfare');grosCoup(1.4,1.5);souffle(2);lancerBilles(3);G.save=G.t+20;return}
+  if(G.lockLit){G.lockLit=false;G.locked++;souffle(.7);son('lock');
+    if(G.locked>=2){G.locked=0;G.multi='dragon';G.jp=0;banniere('MULTIBALL DU DRAGON','#ff6a2a',3,{scene:'dragon'});voix('Multiball du dragon !');grosCoup(1,1.3);souffle(2);lancerBilles(2,'grotte');G.save=G.t+15}
+    else{b.mort=true;banniere('BILLE BLOQUÉE 1/2','#ff6a2a',2,{scene:'dragon'});voix('Le dragon garde la bille');apres(1.4,nouvelleBille)}
+    return}
+  plus(5000,200,160,'#ffd47a');banniere('LE DRAGON DORT','#ff6a2a',1.4,{scene:'dragon',sous:'ŒUFS = LOCK'})}
+function finMulti(){const m=G.multi;G.multi=null;G.superJP=false;
+  if(m==='vol'){G.modeOK=[0,0,0,0,0,0];G.niveau++;G.sel=0;banniere('DRAGON APPRIVOISÉ','#ffd47a',3,{scene:'dragon'});voix('Le dragon est apprivoisé !')}
+  else banniere('FIN DU MULTIBALL','#ffd47a',1.6)}
+
+/* ================= PHYSIQUE ================= */
+let nX=0,nY=0;
+function colSeg(b,s){
+  const dx=s.x2-s.x1,dy=s.y2-s.y1,l2=dx*dx+dy*dy;let t=((b.x-s.x1)*dx+(b.y-s.y1)*dy)/l2;t=t<0?0:t>1?1:t;
+  const cx=s.x1+dx*t,cy=s.y1+dy*t;let x=b.x-cx,y=b.y-cy;const d=Math.hypot(x,y),R=b.r+s.r;
+  if(d>=R||d<1e-6)return-1;x/=d;y/=d;nX=x;nY=y;
+  const vn=b.vx*x+b.vy*y;
+  if(s.kind==='rampe'&&-vn>380&&y>0.7){b.rampe={id:s.id,u:0,v:Math.min(900,Math.max(560,-b.vy*.6))};son('rampe');return-2}
+  b.x=cx+x*R;b.y=cy+y*R;
+  if(vn<0){b.vx-=(1+s.e)*vn*x;b.vy-=(1+s.e)*vn*y;return-vn}return 0;
+}
+function colFlip(b,f){
+  const tx=f.px+Math.cos(f.ang)*f.len,ty=f.py+Math.sin(f.ang)*f.len,dx=tx-f.px,dy=ty-f.py;
+  let t=((b.x-f.px)*dx+(b.y-f.py)*dy)/(f.len*f.len);t=t<0?0:t>1?1:t;
+  const cx=f.px+dx*t,cy=f.py+dy*t;let x=b.x-cx,y=b.y-cy;const d=Math.hypot(x,y),R=b.r+(9-4*t);
+  if(d>=R||d<1e-6)return;x/=d;y/=d;b.x=cx+x*R;b.y=cy+y*R;
+  const rx=cx-f.px,ry=cy-f.py,sx=-f.av*ry,sy=f.av*rx;
+  let vx=b.vx-sx,vy=b.vy-sy;const vn=vx*x+vy*y;
+  if(vn<0){vx-=1.38*vn*x;vy-=1.38*vn*y;b.vx=vx+sx;b.vy=vy+sy}
+}
+function pas(dt){
+  for(const f of fl){const c=f.on?f.up:f.rest,old=f.ang,v=26*dt;if(Math.abs(c-f.ang)<=v)f.ang=c;else f.ang+=Math.sign(c-f.ang)*v;f.av=(f.ang-old)/dt}
+  for(const b of billes){
+    if(b.rampe||b.mort||b.tenu)continue;
+    b.vy+=GRAV*dt;
+    const sp=Math.hypot(b.vx,b.vy);if(sp>2300){b.vx*=2300/sp;b.vy*=2300/sp}
+    const py=b.y;b.x+=b.vx*dt;b.y+=b.vy*dt;
+    for(const s of segs){
+      if(s.kind==='porte'&&b.vy<=0)continue;
+      if(s.kind==='drop'&&G.drop[s.idx])continue;
+      const imp=colSeg(b,s);if(imp===-2)break;if(imp<0)continue;
+      if(G.tilt)continue;
+      if(s.kind==='sling'&&imp>60){b.vx+=nX*560;b.vy+=nY*560;s.flash=1;plus(30);etincelles(b.x,b.y,C.or,10);son('epee');shake=Math.max(shake,2);vib(12);
+        if(!G.mode&&!G.multi){G.sel=suivant(G.sel)}}
+      else if(s.kind==='oeuf'&&imp>40){const i=s.idx;etincelles(b.x,b.y,0xfff0c0,14);son('cible');G.bonusB+=500;coup('oeufs',b.x+20,b.y);
+        if(!G.oeufs[i]){G.oeufs[i]=1;plus(2000,b.x+24,b.y,'#fff0c0');
+          if(G.oeufs.every(v=>v)){G.oeufs=[0,0,0];if(!G.lockLit&&!G.multi){G.lockLit=true;banniere('LOCK ALLUMÉ','#ff6a2a',2.2,{scene:'dragon',sous:'VISE LA GROTTE'});son('roar');voix('Les œufs éclosent ! Lock allumé à la grotte.');souffle(.6)}else{plus(10000);son('or')}}}else plus(500)}
+      else if(s.kind==='drop'&&imp>60){G.drop[s.idx]=1;G.bonusB+=500;const dy2=(s.y1+s.y2)/2;plus(1500,s.x1-20,dy2,'#ff9a3a');etincelles(s.x1,dy2,C.orange,18);son('drop');shake=Math.max(shake,3);vib(20);coup('ecailles',s.x1-24,dy2);
+        if(G.drop.every(v=>v)){G.ecaillesN++;plus(25000);banniere('ÉCAILLES DU DRAGON','#ff9a3a',1.8,{scene:'tresor',sous:'+25 000'});son('or');
+          if(G.ecaillesN===3&&!G.extraE){G.extraE=true;G.balls++;apres(1.8,()=>{banniere('BILLE EN PLUS !','#ffd47a',2.2,{scene:'jackpot'});voix('Bille en plus !')})}
+          apres(1,()=>G.drop=[0,0,0])}}
+      else if(imp>240&&(s.kind==='mur'||s.kind==='poteau'))son('tic')}
+    if(b.rampe)continue;
+    for(const u of bumpers){let x=b.x-u.x,y=b.y-u.y;const d=Math.hypot(x,y),R=b.r+u.r;
+      if(d<R&&d>1e-6){x/=d;y/=d;b.x=u.x+x*R;b.y=u.y+y*R;const vn=b.vx*x+b.vy*y;if(G.tilt){if(vn<0){b.vx-=1.5*vn*x;b.vy-=1.5*vn*y}continue}b.vx+=(760-vn)*x;b.vy+=(760-vn)*y;
+        u.f=1;plus(200,u.x,u.y-24,'#c8a0ff');etincelles(b.x-x*9,b.y-y*9,C.violet,14);son('bumper');shake=Math.max(shake,3);flashBumper(u);vib(15);coup('bumpers',u.x,u.y)}}
+    for(const f of fl)colFlip(b,f);
+    if(!G.tilt&&b.y>94&&b.y<118)couloirs.forEach((c,i)=>{if(Math.abs(b.x-c)<14&&G.lc[i]<=0){G.lc[i]=.6;
+      if(G.skillFin&&G.t<G.skillFin){if(i===G.skill){plus(25000,c,130,'#ffe94d');banniere('SKILL SHOT !','#ffe94d',1.8,{scene:'jackpot'});son('fanfare');voix('Skill shot !');grosCoup(.4,.6)}G.skillFin=0}
+      if(!G.lanes[i]){G.lanes[i]=1;plus(500,c,130,'#ffd47a');son('lane');
+        if(G.lanes.every(v=>v)){G.lanes=[0,0,0];G.mult=Math.min(5,G.mult+1);plus(5000);banniere('MULTIPLICATEUR ×'+G.mult,'#ffe94d',1.8);son('fanfare');voix('Multiplicateur '+G.mult);shake=6;flashG=.6}}else plus(100)}})
+    if(!G.tilt&&b.x<56&&b.x>20){
+      if((py-380)*(b.y-380)<=0){G.spin+=Math.abs(b.vy)/90;son('spin')}
+      if(py>=255&&b.y<255&&b.vy<0&&G.t-G.orbT>1){G.orbT=G.t;G.bonusB+=1000;plus(3000,38,240,'#7fc4ff');combo(38,240);son('orbite');coup('orbiteG',60,240)}}
+    if(!G.tilt&&b.x>318&&b.x<352&&py>=250&&b.y<250&&b.vy<0&&G.t-G.orbDT>1){G.orbDT=G.t;G.bonusB+=1000;plus(3000,335,240,'#7fe8ff');combo(335,240);son('orbite');coup('orbiteD',320,240)}
+    if(!G.tilt&&(!b.cool||b.cool<G.t)&&Math.hypot(b.vx,b.vy)<1400)for(const k in TROUS){const T=TROUS[k];if(Math.hypot(b.x-T.x,b.y-T.y)<T.r){b.tenu=G.t+1.5;b.trou=k;b.x=T.x;b.y=T.y;b.vx=b.vy=0;if(k==='grotte')grotte(b);else taverne(b);break}}
+  }
+  for(let i=0;i<billes.length;i++)for(let j=i+1;j<billes.length;j++){const a=billes[i],c=billes[j];if(a.rampe||c.rampe||a.tenu||c.tenu)continue;let x=c.x-a.x,y=c.y-a.y;const d=Math.hypot(x,y);
+    if(d<18&&d>1e-6){x/=d;y/=d;const o=(18-d)/2;a.x-=x*o;a.y-=y*o;c.x+=x*o;c.y+=y*o;const vn=(c.vx-a.vx)*x+(c.vy-a.vy)*y;if(vn<0){a.vx+=vn*x;a.vy+=vn*y;c.vx-=vn*x;c.vy-=vn*y}}}
+}
+function sortieRampe(b){const id=b.rampe.id,s=RAMPES[id].sortie;b.rampe=null;b.x=s[0];b.y=s[1];b.vx=0;b.vy=s[3];
+  const ex=id==='R'?60:310;G.bonusB+=1500;plus(4000,ex,470,'#ffd47a');combo(ex,470);son('sortie');coup(id==='R'?'rampeD':'rampeG',ex,450)}
+function secouer(){if(!G||G.etat!=='jeu'||G.tilt)return;
+  for(const b of billes)if(!b.rampe&&!b.tenu&&!dansCouloir(b)){b.vy-=240;b.vx+=(Math.random()-.5)*160}
+  shake=12;vib(50);son('secousse');G.secousses=G.secousses.filter(t=>G.t-t<6);G.secousses.push(G.t);
+  if(G.secousses.length===3){banniere('ATTENTION !','#ff4040',1.4);voix('Attention !')}
+  if(G.secousses.length>=4){G.tilt=true;banniere('TILT','#ff2020',3);voix('Tilt !');son('perdu');G.bonusB=0;for(const f of fl)f.on=false}}
+function maj(dt){
+  G.t+=dt;
+  for(let i=timers.length-1;i>=0;i--)if(timers[i].t<=G.t){const f=timers[i].f;timers.splice(i,1);f()}
+  if(G.etat!=='jeu')return;
+  const repos=billes.filter(auRepos);
+  if(fl[1].on&&repos.length)G.charge=Math.min(1,G.charge+dt*1.1);
+  if(!fl[1].on&&G.charge>0){if(repos.length){for(const b of repos)b.vy=-(1050+1050*G.charge);son('lance');vib(25);G.skillFin=G.t+5;if(G.arm){G.arm=false;G.save=G.t+12}}G.charge=0}
+  $('charge').style.height=(repos.length?G.charge*160:0)+'px';
+  if(G.mode){const M=MODES[G.mode.i];if(M.type==='hurry')G.mode.val=M.v0*(.2+.8*Math.max(0,G.mode.fin-G.t)/G.mode.duree);if(G.t>=G.mode.fin)perdreMode()}
+  for(const b of billes){if(b.rampe){b.rampe.u+=b.rampe.v*dt/RAMPES[b.rampe.id].len;if(b.rampe.u>=1)sortieRampe(b)}
+    if(b.tenu&&b.tenu<G.t){b.tenu=0;b.cool=G.t+.8;if(b.trou==='grotte'){b.vx=(Math.random()-.5)*120;b.vy=380}else{b.vx=120+Math.random()*60;b.vy=260}son('lance');shake=5}}
+  billes=billes.filter(b=>!b.mort);
+  const h=dt/SUB;for(let i=0;i<SUB;i++)pas(h);
+  for(let i=0;i<3;i++)G.lc[i]-=dt;
+  for(const u of bumpers)u.f=Math.max(0,u.f-dt*4);for(const s of slings)s.flash=Math.max(0,s.flash-dt*5);
+  G.spinA+=G.spin*dt*6.283;const avant=G.spinCompte;G.spinCompte+=G.spin*dt;if(Math.floor(G.spinCompte)>Math.floor(avant))plus(200);G.spin*=Math.pow(.25,dt);
+  const libres=billes.filter(b=>!b.rampe&&!b.tenu&&!dansCouloir(b));
+  if(libres.length&&libres.every(b=>Math.hypot(b.vx,b.vy)<8)){G.lent+=dt;if(G.lent>3){for(const b of libres){b.vy=-500;b.vx=(Math.random()-.5)*300}G.lent=0}}else G.lent=0;
+  for(let i=billes.length-1;i>=0;i--)if(billes[i].y>H+30){billes.splice(i,1);
+    if(billes.length===1&&G.multi)finMulti();
+    if(!billes.length){
+      if(G.t<G.save&&!G.tilt){banniere('BILLE SAUVÉE !','#3dd66a',1.8);son('fanfare');voix('Bille sauvée');nouvelleBille();G.save=0}
+      else{son('perdu');vib(250);G.balls--;if(G.multi)finMulti();G.multi=null;if(G.mode)G.mode=null;
+        const bonus=G.tilt?0:G.bonusB*G.mult;G.bonusB=0;let att=1.8;
+        if(bonus>0){banniere('BONUS','#ffd47a',2.6,{bonus,m:G.mult});G.score+=bonus;att=2.8}else if(!G.tilt)banniere('BILLE PERDUE','#ff6a3a');
+        G.mult=1;
+        if(G.balls<=0){apres(att,()=>{banniere('GAME OVER','#ff6a3a',2.5,{scene:'dragon'});voix('Fin de la partie')});apres(att+2.4,finPartie)}
+        else apres(att,()=>{G.arm=true;G.bille++;nouvelleBille()})}}}
+}
+function finPartie(){G.etat='fin';
+  if(G.score>rec){rec=G.score;try{localStorage.setItem('reveil_record',rec)}catch(e){};$('recFin').textContent='NOUVEAU RECORD !';voix('Nouveau record !')}
+  else $('recFin').textContent='Record : '+fr(rec);
+  $('scoreFin').textContent=fr(G.score);
+  $('detailFin').innerHTML='<b>'+G.missions+'</b> mission'+(G.missions>1?'s':'')+' réussie'+(G.missions>1?'s':'')+' · <b>'+G.jackpots+'</b> jackpot'+(G.jackpots>1?'s':'');
+  $('fin').hidden=false}
+
+/* ================= 3D ================= */
+const zone=$('jeu');
+const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
+renderer.setPixelRatio(Math.min(2,devicePixelRatio||1));renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.0;
+zone.appendChild(renderer.domElement);
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x120606);
+const pmrem=new THREE.PMREMGenerator(renderer);const envTex=pmrem.fromScene(new RoomEnvironment(),.04).texture;
+const camera=new THREE.PerspectiveCamera(30,1,10,6000);
+scene.add(new THREE.HemisphereLight(0xfff0d8,0x3a2010,.6));
+const dl=new THREE.DirectionalLight(0xffe8c8,.9);dl.position.set(-150,600,500);scene.add(dl);
+const neon=(hex,k)=>new THREE.MeshBasicMaterial({color:new THREE.Color(hex).multiplyScalar(k)});
+const chrome=new THREE.MeshStandardMaterial({color:0xdddddd,metalness:1,roughness:.18,envMap:envTex,envMapIntensity:1});
+const noir=new THREE.MeshStandardMaterial({color:0x2a1a12,roughness:.5,metalness:.4,envMap:envTex,envMapIntensity:.3});
+const chromeR=new THREE.MeshStandardMaterial({color:0xa0a0aa,metalness:1,roughness:.25,envMap:envTex,envMapIntensity:.6});
+const orM=new THREE.MeshStandardMaterial({color:0xd8a040,metalness:1,roughness:.3,envMap:envTex,envMapIntensity:.9});
+function rng(s){return()=>{s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function cheminTable(g){g.beginPath();g.moveTo(20,724);g.lineTo(20,200);g.arc(200,200,180,Math.PI,0);g.lineTo(380,724);g.closePath()}
+function arbre(g,x,y,s,R){g.fillStyle=['#2f7a2a','#3f9a34','#246a22','#4aa83a'][Math.floor(R()*4)];g.beginPath();g.arc(x,y,s,0,6.283);g.fill();g.fillStyle='rgba(255,255,200,.18)';g.beginPath();g.arc(x-s*.3,y-s*.3,s*.45,0,6.283);g.fill()}
+function maison(g,x,y,s,R){g.fillStyle='#e8d0a0';g.fillRect(x-s,y-s*.6,s*2,s*1.2);g.fillStyle=['#c8301a','#a82818','#d8501e'][Math.floor(R()*3)];g.beginPath();g.moveTo(x-s*1.25,y-s*.55);g.lineTo(x,y-s*1.5);g.lineTo(x+s*1.25,y-s*.55);g.fill();g.fillStyle='#ffc050';g.fillRect(x-s*.3,y-s*.2,s*.5,s*.5)}
+function engrenage(g,x,y,r,dents,col){g.save();g.translate(x,y);g.fillStyle=col;g.beginPath();for(let i=0;i<dents*2;i++){const a=i*Math.PI/dents,rr=i%2?r:r*1.18;g.lineTo(Math.cos(a)*rr,Math.sin(a)*rr)}g.closePath();g.fill();
+  g.globalCompositeOperation='destination-out';g.beginPath();g.arc(0,0,r*.45,0,6.283);g.fill();g.restore()}
+function etiquette(g,t,x,y,col,taille,rot){g.save();g.translate(x,y);if(rot)g.rotate(rot);g.font=`900 ${taille||7}px Cinzel,serif`;g.textAlign='center';g.textBaseline='middle';g.lineWidth=2.4;g.strokeStyle='rgba(20,6,2,.85)';g.strokeText(t,0,0);g.fillStyle=col||'#ffe2a0';g.fillText(t,0,0);g.restore()}
+function texSol(){const k=2,c=document.createElement('canvas');c.width=W*k;c.height=H*k;const g=c.getContext('2d');g.scale(k,k);const R=rng(7);
+  // ciel volcanique (plein cadre)
+  let gr=g.createLinearGradient(0,0,0,300);gr.addColorStop(0,'#1a0630');gr.addColorStop(.3,'#7a1438');gr.addColorStop(.62,'#ff5a1a');gr.addColorStop(1,'#ffc04a');g.fillStyle=gr;g.fillRect(0,0,W,320);
+  for(let i=0;i<50;i++){g.fillStyle=`rgba(255,255,255,${R()*.8})`;g.fillRect(R()*W,R()*60,1,1)}
+  g.fillStyle='#5a1a40';g.beginPath();g.moveTo(0,320);for(let x=0;x<=W;x+=10)g.lineTo(x,190+Math.sin(x*.04)*18+Math.sin(x*.15)*7);g.lineTo(W,320);g.fill();
+  // vallée verte
+  gr=g.createLinearGradient(0,250,0,H);gr.addColorStop(0,'#7ac848');gr.addColorStop(.45,'#43a038');gr.addColorStop(1,'#1f6a28');g.fillStyle=gr;g.beginPath();g.moveTo(0,262);for(let x=0;x<=W;x+=10)g.lineTo(x,256+Math.sin(x*.06)*8);g.lineTo(W,H);g.lineTo(0,H);g.fill();
+  // montagne du dragon
+  g.fillStyle='#3a1612';g.beginPath();g.moveTo(40,300);g.lineTo(96,190);g.lineTo(130,150);g.lineTo(160,96);g.lineTo(200,44);g.lineTo(240,96);g.lineTo(270,150);g.lineTo(310,190);g.lineTo(360,300);g.closePath();g.fill();
+  g.fillStyle='#5a2418';g.beginPath();g.moveTo(200,44);g.lineTo(160,96);g.lineTo(130,150);g.lineTo(150,160);g.lineTo(178,110);g.closePath();g.fill();
+  for(let i=0;i<70;i++){g.strokeStyle=`rgba(20,6,4,${.3+R()*.4})`;g.lineWidth=.8;const x=70+R()*260,y=90+R()*200;g.beginPath();g.moveTo(x,y);g.lineTo(x+(R()-.5)*16,y+6+R()*10);g.stroke()}
+  {const lv=g.createLinearGradient(0,50,0,260);lv.addColorStop(0,'#fff080');lv.addColorStop(.5,'#ff7a10');lv.addColorStop(1,'rgba(255,40,0,.2)');g.strokeStyle=lv;g.lineCap='round';
+   for(const [a,b2,c2,d2] of [[196,52,150,170],[204,52,250,160],[200,52,118,230],[200,52,286,220]]){g.lineWidth=2.6;g.beginPath();g.moveTo(a,b2);g.quadraticCurveTo((a+c2)/2+(c2>a?18:-18),(b2+d2)/2,c2,d2);g.stroke()}g.lineCap='butt'}
+  // grotte : couloir de pierre
+  {g.fillStyle='#1a0806';g.fillRect(176,150,48,108);const gl=g.createRadialGradient(200,184,2,200,184,40);gl.addColorStop(0,'rgba(255,90,20,.9)');gl.addColorStop(1,'rgba(255,40,0,0)');g.fillStyle=gl;g.fillRect(160,140,80,90);
+   for(let y=200;y<256;y+=9)for(let x=178;x<222;x+=11){g.fillStyle=`rgb(${50+R()*30},${30+R()*16},${24+R()*10})`;g.fillRect(x+(y%18?5:0),y,9,7)}}
+  // cercle magique sous les bumpers
+  {const cx=276,cy=182;const m=g.createRadialGradient(cx,cy,6,cx,cy,64);m.addColorStop(0,'#c890ff');m.addColorStop(.55,'#5a1a9a');m.addColorStop(1,'#240a40');g.fillStyle=m;g.beginPath();g.arc(cx,cy,60,0,6.283);g.fill();
+   g.strokeStyle='#e8c8ff';g.lineWidth=1.6;g.stroke();g.lineWidth=.7;g.beginPath();g.arc(cx,cy,52,0,6.283);g.stroke();
+   g.beginPath();for(let i=0;i<=5;i++){const a=-Math.PI/2+i*4*Math.PI/5;g.lineTo(cx+Math.cos(a)*50,cy+Math.sin(a)*50)}g.stroke();
+   g.font='700 5.5px Cinzel,serif';g.fillStyle='#f0d8ff';const tx='✦ MAGIE ✦ MAGIE ✦ MAGIE ✦ MAGIE ';for(let i=0;i<tx.length;i++){const an=-Math.PI/2+i/tx.length*6.283;g.save();g.translate(cx+Math.cos(an)*56,cy+Math.sin(an)*56);g.rotate(an+Math.PI/2);g.fillText(tx[i],0,2);g.restore()}}
+  // couloirs du haut
+  g.fillStyle='rgba(20,6,30,.7)';g.fillRect(222,88,98,36);
+  // lac tourbillon
+  {const cx=190,cy=438;g.save();g.beginPath();g.ellipse(cx,cy,112,74,-.12,0,6.283);const l=g.createRadialGradient(cx,cy,10,cx,cy,120);l.addColorStop(0,'#7ae0ff');l.addColorStop(.5,'#1e9ae0');l.addColorStop(1,'#0a4a9a');g.fillStyle=l;g.fill();g.strokeStyle='#e8f8ff';g.lineWidth=1.6;g.stroke();g.clip();
+   g.strokeStyle='rgba(230,250,255,.55)';g.lineWidth=1.2;for(let i=0;i<5;i++){g.beginPath();for(let a=0;a<9;a+=.08){const r=8+a*11+i*4;g.lineTo(cx+Math.cos(a+i*1.26)*r*1.45,cy+Math.sin(a+i*1.26)*r)}g.stroke()}g.restore()}
+  // rivières
+  {const riv=f=>{g.lineCap='round';f();g.strokeStyle='#0c4a8a';g.lineWidth=20;g.stroke();f();g.strokeStyle='#2ab0f0';g.lineWidth=15;g.stroke();g.setLineDash([5,8]);f();g.strokeStyle='rgba(230,250,255,.6)';g.lineWidth=1;g.stroke();g.setLineDash([]);g.lineCap='butt'};
+   riv(()=>{g.beginPath();g.moveTo(200,258);g.bezierCurveTo(206,300,180,330,190,368)});
+   riv(()=>{g.beginPath();g.moveTo(196,508);g.bezierCurveTo(230,560,150,590,186,650)})}
+  // forêts et villages
+  for(let i=0;i<200;i++){const cl=[[70,290],[330,290],[130,380],[250,380],[60,600],[310,600],[100,470],[290,470],[70,250],[330,256]][i%10];arbre(g,cl[0]+(R()-.5)*44,cl[1]+(R()-.5)*30,2.2+R()*2.2,R)}
+  for(const [x,y] of [[84,440],[100,452],[72,456],[118,440],[262,486],[280,498],[300,484],[250,502],[150,384],[236,380],[226,394]])maison(g,x,y,5,R);
+  // panneau des reliques
+  {g.fillStyle='#6a3a1a';g.beginPath();g.moveTo(128,470);g.lineTo(244,470);g.lineTo(254,600);g.lineTo(118,600);g.closePath();g.fill();
+   for(let i=0;i<7;i++){g.strokeStyle='rgba(30,12,4,.6)';g.lineWidth=1;g.beginPath();g.moveTo(128+i*19.3,470);g.lineTo(118+i*22.6,600);g.stroke()}
+   g.strokeStyle='#ffc860';g.lineWidth=2;g.beginPath();g.moveTo(128,470);g.lineTo(244,470);g.lineTo(254,600);g.lineTo(118,600);g.closePath();g.stroke();
+   const y=468;g.fillStyle='#8a1a10';g.beginPath();g.moveTo(132,y-8);g.quadraticCurveTo(186,y-14,240,y-8);g.lineTo(240,y+5);g.quadraticCurveTo(186,y-1,132,y+5);g.closePath();g.fill();g.strokeStyle='#ffc860';g.lineWidth=.8;g.stroke();
+   etiquette(g,'RELIQUES',186,y-2,'#ffe2a0',8)}
+  // étiquettes des tirs
+  etiquette(g,'ORBITE',38,478,'#9fd4ff',6.5,-Math.PI/2);etiquette(g,'RAMPE',94,416,'#a8ffb0',7);etiquette(g,'TAVERNE',146,356,'#ffe08a',7);etiquette(g,'GROTTE',200,306,'#ffb08a',7.5);
+  etiquette(g,'RAMPE',290,378,'#e0c0ff',7);etiquette(g,'ORBITE',335,322,'#a0f0ff',6);etiquette(g,'ÉCAILLES',300,428,'#ffc090',6.5);etiquette(g,'ŒUFS',112,250,'#fff0c0',7,-Math.PI/4);
+  etiquette(g,'LE RÉVEIL DU DRAGON',186,410,'#ffe2a0',9.5);
+  // tabliers du bas
+  const tab=pts=>{g.beginPath();pts.forEach((p,i)=>i?g.lineTo(p[0],p[1]):g.moveTo(p[0],p[1]));g.closePath();const t=g.createLinearGradient(0,555,0,724);t.addColorStop(0,'#2a7ad0');t.addColorStop(1,'#0a2a6a');g.fillStyle=t;g.fill();g.strokeStyle='#ffc860';g.lineWidth=1.5;g.stroke()};
+  tab([[20,560],[106,632],[106,724],[20,724]]);tab([[352,560],[266,632],[266,724],[352,724]]);
+  engrenage(g,44,660,13,10,'rgba(255,200,80,.8)');engrenage(g,70,698,9,8,'rgba(255,200,80,.7)');engrenage(g,328,660,13,10,'rgba(255,200,80,.8)');engrenage(g,302,698,9,8,'rgba(255,200,80,.7)');
+  etiquette(g,'TAVERNE',58,612,'#ffe2a0',5.5);etiquette(g,'= MISSION',58,620,'#ffe2a0',5.5);etiquette(g,'ŒUFS',314,612,'#ffe2a0',5.5);etiquette(g,'= LOCK',314,620,'#ffe2a0',5.5);
+  // tête de dragon entre les palettes
+  {g.save();g.translate(186,692);const dg=g.createRadialGradient(0,-14,4,0,0,70);dg.addColorStop(0,'#e8401e');dg.addColorStop(.6,'#9a160c');dg.addColorStop(1,'#3a0604');g.fillStyle=dg;
+   g.beginPath();g.moveTo(-78,34);g.quadraticCurveTo(-70,-24,-26,-40);g.lineTo(-40,-62);g.lineTo(-12,-44);g.quadraticCurveTo(0,-48,12,-44);g.lineTo(40,-62);g.lineTo(26,-40);g.quadraticCurveTo(70,-24,78,34);g.closePath();g.fill();g.strokeStyle='#ffc860';g.lineWidth=1.4;g.stroke();
+   g.strokeStyle='rgba(255,180,90,.35)';g.lineWidth=.7;for(let i=0;i<10;i++){g.beginPath();g.arc(0,-6,30+i*5,Math.PI*1.12,Math.PI*1.88);g.stroke()}
+   for(const s of [-1,1]){g.fillStyle='#ffe040';g.beginPath();g.ellipse(s*30,-22,8,3.6,s*.45,0,6.283);g.fill();g.fillStyle='#300';g.fillRect(s*30-.9,-26,1.8,8)}
+   g.fillStyle='#160202';g.beginPath();g.ellipse(0,-2,21,19,0,0,6.283);g.fill();
+   g.fillStyle='#fff2d8';for(let i=0;i<12;i++){const a=i/12*6.283,x=Math.cos(a)*20,y=-2+Math.sin(a)*18;g.save();g.translate(x,y);g.rotate(a+Math.PI/2);g.beginPath();g.moveTo(-2.4,0);g.lineTo(0,6);g.lineTo(2.4,0);g.fill();g.restore()}
+   g.restore()}
+  // couloir du lanceur
+  g.fillStyle='#1a0c10';g.fillRect(352,250,28,474);g.fillStyle='rgba(255,180,80,.7)';for(let y=640;y>300;y-=40){g.beginPath();g.moveTo(366,y-8);g.lineTo(372,y);g.lineTo(360,y);g.fill()}
+  const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=8;return t}
+const tex0=texSol();
+const sol=new THREE.Mesh(new THREE.PlaneGeometry(W,H),new THREE.MeshStandardMaterial({map:tex0,emissiveMap:tex0,roughness:.6,metalness:.05,emissive:0xffffff,emissiveIntensity:.36}));
+sol.rotation.x=-Math.PI/2;scene.add(sol);
+// meuble
+function texBois(){const c=document.createElement('canvas');c.width=256;c.height=256;const g=c.getContext('2d');g.fillStyle='#2a0e0a';g.fillRect(0,0,256,256);const R=rng(3);
+  for(let i=0;i<90;i++){g.strokeStyle=`rgba(${R()<.5?10:80},${R()<.5?5:30},5,${.15+R()*.25})`;g.lineWidth=.5+R()*1.5;g.beginPath();const y=R()*256;g.moveTo(0,y);for(let x=0;x<=256;x+=16)g.lineTo(x,y+Math.sin(x*.05+i)*3);g.stroke()}
+  const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(.01,.01);t.colorSpace=THREE.SRGBColorSpace;return t}
+{const sh=new THREE.Shape();sh.moveTo(-40,-20);sh.lineTo(440,-20);sh.lineTo(440,760);sh.lineTo(-40,760);sh.lineTo(-40,-20);
+ const hole=new THREE.Path();hole.moveTo(20,724);hole.lineTo(20,14);hole.lineTo(380,14);hole.lineTo(380,724);hole.lineTo(20,724);sh.holes.push(hole);
+ const g=new THREE.ExtrudeGeometry(sh,{depth:26,bevelEnabled:false});g.rotateX(Math.PI/2);g.translate(-200,26,-370);
+ scene.add(new THREE.Mesh(g,new THREE.MeshStandardMaterial({map:texBois(),color:0xb08060,roughness:.55,metalness:.1})))}
+function boite(s,hauteur,mat){const dx=s.x2-s.x1,dy=s.y2-s.y1,l=Math.hypot(dx,dy);const m=new THREE.Mesh(new THREE.BoxGeometry(l+s.r*2,hauteur,s.r*2),mat);
+  m.position.copy(P((s.x1+s.x2)/2,(s.y1+s.y2)/2,hauteur/2));m.rotation.y=-Math.atan2(dy,dx);scene.add(m);return m}
+const bandes=[];
+segs.forEach(s=>{if(['mur','porte'].includes(s.kind)){const hh=s.kind==='porte'?4:s.arc?9:18;boite(s,hh,s.arc?chromeR:noir);const m=new THREE.MeshBasicMaterial({color:0xffffff});const t=boite(s,2,m);t.position.y=hh+1;bandes.push({m,grp:s.grp,i:bandes.length})}
+  else if(s.kind==='poteau'){const p=new THREE.Mesh(new THREE.CylinderGeometry(4.5,4.5,18,14),orM);p.position.copy(P(s.x1,(s.y1+s.y2)/2,9));p.scale.z=(s.y2-s.y1+9)/9;scene.add(p)}});
+function extruder(pts,depth,mat){const sh=new THREE.Shape();pts.forEach((p,i)=>i?sh.lineTo(p[0],p[1]):sh.moveTo(p[0],p[1]));const g=new THREE.ExtrudeGeometry(sh,{depth,bevelEnabled:false});g.rotateX(Math.PI/2);g.translate(-200,depth,-370);const m=new THREE.Mesh(g,mat);scene.add(m);return m}
+const matPlast=[0,1].map(()=>new THREE.MeshStandardMaterial({color:0x3a9be0,transparent:true,opacity:.55,roughness:.2,emissive:0x1a6ad0,emissiveIntensity:.6}));
+extruder([[60,470],[60,550],[100,575]],18,noir);extruder([[312,470],[312,550],[272,575]],18,noir);
+{const a=extruder([[56,462],[56,556],[106,584]],2,matPlast[0]);a.position.y+=19;const b=extruder([[316,462],[316,556],[266,584]],2,matPlast[1]);b.position.y+=19}
+const slingM=slings.map(s=>boite(s,16,neon(C.or,1)));
+const oeufM=oeufs.map(s=>{const m=new THREE.Mesh(new THREE.SphereGeometry(1,16,12),new THREE.MeshBasicMaterial({color:0xfff0c0}));m.scale.set(7,11,6);m.position.copy(P((s.x1+s.x2)/2,(s.y1+s.y2)/2,10));scene.add(m);return m});
+const dropM=drops.map(s=>boite(s,16,neon(C.orange,1)));
+const matAnneau=new THREE.MeshBasicMaterial({color:0xffffff});
+function texEmbleme(e){const c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d');g.font='40px serif';g.textAlign='center';g.textBaseline='middle';g.globalAlpha=.9;g.fillText(e,32,35);const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;return t}
+const bumpM=bumpers.map(u=>{const g=new THREE.Group();g.position.copy(P(u.x,u.y,0));
+  const corps=new THREE.Mesh(new THREE.CylinderGeometry(u.r-4,u.r,16,32),chrome);corps.position.y=8;g.add(corps);
+  const anneau=new THREE.Mesh(new THREE.TorusGeometry(u.r-1,2.2,10,40),matAnneau);anneau.rotation.x=Math.PI/2;anneau.position.y=4;g.add(anneau);
+  const cap=new THREE.Mesh(new THREE.CylinderGeometry(u.r-5,u.r-3,6,32),new THREE.MeshBasicMaterial({color:0xffffff}));cap.position.y=19;g.add(cap);
+  const top=new THREE.Mesh(new THREE.CircleGeometry(u.r-6,32).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({map:texEmbleme('⚡'),transparent:true}));top.position.y=22.2;g.add(top);
+  scene.add(g);return{g,cap}});
+const flashL=new THREE.PointLight(C.violet,0,160,1.6);scene.add(flashL);
+function flashBumper(u){flashL.position.copy(P(u.x,u.y,30));flashL.intensity=50000}
+// palettes jaunes
+const palM=fl.map(f=>{const mk=(L,r1,r2)=>{const sh=new THREE.Shape();sh.absarc(0,0,r1,Math.PI/2,Math.PI*1.5,false);sh.lineTo(L,-r2);sh.absarc(L,0,r2,-Math.PI/2,Math.PI/2,false);sh.lineTo(0,r1);return sh};
+  const grp=new THREE.Group();grp.position.copy(P(f.px,f.py,0));scene.add(grp);
+  const gR=new THREE.ExtrudeGeometry(mk(f.len,9,5),{depth:6,bevelEnabled:false});gR.rotateX(Math.PI/2);gR.translate(0,9,0);grp.add(new THREE.Mesh(gR,new THREE.MeshStandardMaterial({color:0x1a1a1a,roughness:.6})));
+  const gB=new THREE.ExtrudeGeometry(mk(f.len-1,7.5,3.8),{depth:8,bevelEnabled:true,bevelSize:.8,bevelThickness:.8,bevelSegments:2});gB.rotateX(Math.PI/2);gB.translate(0,15,0);grp.add(new THREE.Mesh(gB,new THREE.MeshStandardMaterial({color:0xffc81a,roughness:.3,emissive:0x4a3200})));
+  const piv=new THREE.Mesh(new THREE.CylinderGeometry(3,3,18,12),chrome);piv.position.y=9;grp.add(piv);return grp});
+// spinner
+const spinG=new THREE.Group();spinG.position.copy(P(38,380,16));scene.add(spinG);
+const spinPl=new THREE.Mesh(new THREE.BoxGeometry(32,12,1.5),orM);spinPl.position.y=-6;spinG.add(spinPl);
+{const bar=new THREE.Mesh(new THREE.CylinderGeometry(1,1,36,8),chrome);bar.rotation.z=Math.PI/2;spinG.add(bar)}
+// trous
+for(const k in TROUS){const T=TROUS[k];const ring=new THREE.Mesh(new THREE.TorusGeometry(T.r+2,2.4,10,32),orM);ring.rotation.x=Math.PI/2;ring.position.copy(P(T.x,T.y,1.5));scene.add(ring);
+ const fond=new THREE.Mesh(new THREE.CircleGeometry(T.r,24).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({color:0x000000}));fond.position.copy(P(T.x,T.y,.8));scene.add(fond)}
+// rampes en fil chromé
+['R','L'].forEach(k=>{const r=RAMPES[k],N=120,up=new THREE.Vector3(0,1,0),pts=r.courbe.getSpacedPoints(N);
+  for(const [ox,oy] of [[-10,-1],[10,-1],[-6,-10],[6,-10]]){const arr=pts.map((p,i)=>{const tg=r.courbe.getTangentAt(i/N),lat=new THREE.Vector3().crossVectors(tg,up).normalize();return p.clone().addScaledVector(lat,ox).add(new THREE.Vector3(0,oy,0))});
+    scene.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(arr),200,1.1,6),chromeR))}
+  for(let i=8;i<N-4;i+=16){const p=pts[i],tg=r.courbe.getTangentAt(i/N),lat=new THREE.Vector3().crossVectors(tg,up).normalize();
+    const anneau=new THREE.Mesh(new THREE.TorusGeometry(10,.8,6,16,Math.PI),chromeR);anneau.position.copy(p);anneau.position.y-=1;anneau.lookAt(p.clone().add(tg));anneau.rotateZ(Math.PI);scene.add(anneau);
+    if(p.y>18){const c=new THREE.Mesh(new THREE.CylinderGeometry(1.1,1.1,p.y-10,6),chromeR);c.position.set(p.x+lat.x*12,(p.y-10)/2,p.z+lat.z*12);scene.add(c)}}
+  const a=new THREE.Mesh(new THREE.TorusGeometry(24,2.2,8,24,Math.PI),orM);a.position.copy(r.courbe.getPointAt(0));a.position.y=0;scene.add(a)});
+// inserts
+function insertForme(x,y,taille,hex,forme,ang){let g;
+  if(forme==='fleche'){const s=taille,sh=new THREE.Shape();sh.moveTo(0,s*1.5);sh.lineTo(-s*.75,s*.3);sh.lineTo(-s*.32,s*.3);sh.lineTo(-s*.32,-s*1.1);sh.lineTo(s*.32,-s*1.1);sh.lineTo(s*.32,s*.3);sh.lineTo(s*.75,s*.3);sh.lineTo(0,s*1.5);g=new THREE.ShapeGeometry(sh)}
+  else g=new THREE.CircleGeometry(taille,24);
+  g.rotateZ(ang||0);g.rotateX(-Math.PI/2);const m=new THREE.Mesh(g,neon(hex,.2));m.position.copy(P(x,y,.6));scene.add(m);m.userData.hex=hex;return m}
+const setL=(m,k,hex)=>{m.material.color.setHex(hex==null?m.userData.hex:hex).multiplyScalar(k)};
+function insertTex(x,y,w,h,dessin){const c=document.createElement('canvas');c.width=w*4;c.height=h*4;const g=c.getContext('2d');g.scale(4,4);dessin(g,w,h);const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;
+  const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({map:t,transparent:true}));m.position.copy(P(x,y,.7));scene.add(m);return m}
+const setT=(m,k,hex)=>{m.material.color.setHex(hex==null?0xffffff:hex).multiplyScalar(k)};
+const fleches={},colonnes={};
+for(const [n,f] of Object.entries(FLECHES)){const s=(f.s||1)*11;const halo=insertForme(f.x,f.y,s*1.28,0x000000,'fleche',f.a);halo.position.y=.5;halo.material=new THREE.MeshBasicMaterial({color:0x140604});fleches[n]=insertForme(f.x,f.y,s,SHOTCOL[n],'fleche',f.a);
+  if(COLONNES.includes(n))colonnes[n]=[20,29,38].map(dd=>insertForme(f.x+Math.sin(f.a)*dd,f.y+Math.cos(f.a)*dd+4,3.4,SHOTCOL[n]))}
+function cheminBouclier(g,w,h){g.beginPath();g.moveTo(1,1);g.lineTo(w-1,1);g.lineTo(w-1,h*.55);g.quadraticCurveTo(w-1,h*.85,w/2,h-1);g.quadraticCurveTo(1,h*.85,1,h*.55);g.closePath()}
+const reliqueM=MODES.map((m,i)=>insertTex(RELIQUES[i][0],RELIQUES[i][1],22,26,(g,w,h)=>{cheminBouclier(g,w,h);const c=new THREE.Color(m.col);const gr=g.createLinearGradient(0,0,0,h);gr.addColorStop(0,'#'+c.clone().lerp(new THREE.Color(1,1,1),.35).getHexString());gr.addColorStop(1,'#'+c.clone().multiplyScalar(.5).getHexString());
+  g.fillStyle=gr;g.fill();g.lineWidth=1.4;g.strokeStyle='#ffe2a0';g.stroke();g.font='12px serif';g.textAlign='center';g.textBaseline='middle';g.fillText(m.e,w/2,h*.42);g.font='900 3.4px Cinzel,serif';g.fillStyle='#fff';g.fillText(m.c,w/2,h*.78)}));
+const laneI=couloirs.map(c=>insertTex(c,106,14,14,(g,w,h)=>{g.beginPath();g.arc(7,7,6,0,6.283);g.fillStyle='#ffcf6a';g.fill();g.strokeStyle='#5a2a08';g.lineWidth=1;g.stroke();g.fillStyle='#5a2a08';g.font='900 7px serif';g.textAlign='center';g.textBaseline='middle';g.fillText('⚡',7,7.5)}));
+const multI=[2,3,4,5].map((n,i)=>insertTex(156+i*20,612,15,12,(g,w,h)=>{g.fillStyle='#ffcf6a';g.fillRect(.5,.5,w-1,h-1);g.fillStyle='#4a1a06';g.font='900 7px Cinzel,serif';g.textAlign='center';g.textBaseline='middle';g.fillText(n+'X',w/2,h/2+.5)}));
+const saveI=insertTex(186,690,30,30,(g,w,h)=>{g.beginPath();g.arc(15,15,14,0,6.283);g.fillStyle='#ffcf6a';g.fill();g.strokeStyle='#5a2a08';g.lineWidth=1;g.stroke();g.fillStyle='#4a1a06';g.font='900 5px Cinzel,serif';g.textAlign='center';g.fillText('BILLE',15,14);g.fillText('SAUVÉE',15,20)});
+const lockI=[0,1].map(i=>insertForme(178+i*44,288,4.5,C.rouge));
+const anneauL=[];for(let i=0;i<20;i++){const a=i/20*6.283;anneauL.push(insertForme(276+Math.cos(a)*66,182+Math.sin(a)*66,2.6,C.violet))}
+const lacL=[];for(let i=0;i<16;i++){const a=i/16*6.283;lacL.push(insertForme(190+Math.cos(a-.12)*104,438+Math.sin(a)*66,2.4,C.cyan))}
+const ressort=new THREE.Mesh(new THREE.CylinderGeometry(6,6,16,12),chrome);ressort.rotation.x=Math.PI/2;scene.add(ressort);
+
+/* ---------- jouets : montagne, grotte, dragon, taverne ---------- */
+const V3=(x,y,z)=>new THREE.Vector3(x,y,z);
+const roche=new THREE.MeshStandardMaterial({color:0x5a3a2a,roughness:.9,metalness:.05,flatShading:true});
+{const R=rng(5);for(let i=0;i<18;i++){const m=new THREE.Mesh(new THREE.DodecahedronGeometry(10+R()*14,0),roche);const a=R()*Math.PI,rr=20+R()*44;m.position.copy(P(200+Math.cos(a)*rr*1.3,98-Math.sin(a)*rr*.6,6+R()*16));m.rotation.set(R()*3,R()*3,R()*3);m.scale.y=.7+R()*.6;scene.add(m)}
+ const arche=new THREE.Mesh(new THREE.TorusGeometry(25,7,8,18,Math.PI),roche);arche.position.copy(P(200,163,0));scene.add(arche);
+ for(const s of [-1,1]){const m=new THREE.Mesh(new THREE.DodecahedronGeometry(11,0),roche);m.position.copy(P(200+s*30,160,8));scene.add(m)}}
+const lumGrotte=new THREE.PointLight(0xff4a10,3000,120,1.6);lumGrotte.position.copy(P(200,190,20));scene.add(lumGrotte);
+const ecaille=new THREE.MeshStandardMaterial({color:0x1f8a46,roughness:.4,metalness:.5,envMap:envTex,envMapIntensity:.6});
+const membrane=new THREE.MeshStandardMaterial({color:0x40c070,roughness:.6,metalness:.1,side:THREE.DoubleSide,emissive:0x0a4a1a});
+const matOeil=new THREE.MeshBasicMaterial({color:0xffc040});
+const dragon=new THREE.Group();dragon.position.copy(P(200,96,44));dragon.scale.setScalar(1.5);scene.add(dragon);
+const corpsD=new THREE.Mesh(new THREE.SphereGeometry(1,20,14),ecaille);corpsD.scale.set(13,10,19);dragon.add(corpsD);
+dragon.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([V3(0,4,10),V3(1,14,18),V3(2,24,24),V3(0,28,32)]),20,4.5,10),ecaille));
+dragon.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([V3(0,0,-14),V3(-8,-4,-30),V3(-20,-6,-36),V3(-30,-4,-28)]),24,3.5,8),ecaille));
+for(const s of [-1,1]){const p=new THREE.Mesh(new THREE.CylinderGeometry(2.4,2,14,8),ecaille);p.position.set(s*9,-8,8);p.rotation.x=.4;dragon.add(p);const p2=p.clone();p2.position.set(s*9,-8,-8);dragon.add(p2)}
+const teteD=new THREE.Group();teteD.position.set(0,28,32);dragon.add(teteD);
+{const crane=new THREE.Mesh(new THREE.ConeGeometry(6.5,22,10),ecaille);crane.rotation.x=Math.PI/2+.45;crane.position.set(0,-3,8);teteD.add(crane);
+ teteD.add(new THREE.Mesh(new THREE.SphereGeometry(6.5,14,10),ecaille));
+ for(const s of [-1,1]){const o=new THREE.Mesh(new THREE.SphereGeometry(1.8,10,8),matOeil);o.position.set(s*4,2,3.5);teteD.add(o);
+  const corne=new THREE.Mesh(new THREE.ConeGeometry(1.6,10,8),new THREE.MeshStandardMaterial({color:0xe8d8b0,roughness:.5}));corne.position.set(s*3.5,6,-3);corne.rotation.x=-1.0;corne.rotation.z=-s*.3;teteD.add(corne)}}
+const bouche=new THREE.Object3D();bouche.position.set(0,-7,17);teteD.add(bouche);
+const ailes=[-1,1].map(s=>{const sh=new THREE.Shape();sh.moveTo(0,0);sh.lineTo(42,-14);sh.lineTo(54,2);sh.quadraticCurveTo(44,4,40,14);sh.quadraticCurveTo(30,10,26,22);sh.quadraticCurveTo(16,12,4,16);sh.lineTo(0,0);
+  const g=new THREE.ShapeGeometry(sh);g.rotateX(Math.PI/2);const piv=new THREE.Group();piv.position.set(s*6,8,4);piv.scale.x=s;dragon.add(piv);piv.add(new THREE.Mesh(g,membrane));
+  const os=new THREE.Mesh(new THREE.CylinderGeometry(1.2,1.2,44,6),ecaille);os.rotation.z=Math.PI/2+.32;os.position.set(21,0,-7);piv.add(os);return piv});
+const lumDragon=new THREE.PointLight(0xff6a20,0,220,1.4);scene.add(lumDragon);
+// taverne
+const taverneG=new THREE.Group();taverneG.position.copy(P(146,268,0));scene.add(taverneG);
+{const bois=new THREE.MeshStandardMaterial({color:0x8a5a30,roughness:.8});const toit=new THREE.MeshStandardMaterial({color:0xb02a18,roughness:.6});
+ const m=new THREE.Mesh(new THREE.BoxGeometry(30,16,16),bois);m.position.y=8;taverneG.add(m);
+ const t=new THREE.Mesh(new THREE.ConeGeometry(22,12,4),toit);t.rotation.y=Math.PI/4;t.scale.z=.6;t.position.y=22;taverneG.add(t);
+ for(const x of [-8,8]){const f=new THREE.Mesh(new THREE.PlaneGeometry(5,5),new THREE.MeshBasicMaterial({color:0xffb040}));f.position.set(x,9,8.1);taverneG.add(f)}}
+const matEnseigne=new THREE.MeshBasicMaterial({color:0xffc040});
+{const e=new THREE.Mesh(new THREE.BoxGeometry(10,6,1),matEnseigne);e.position.copy(P(146,284,20));scene.add(e)}
+
+// billes
+const matBille=new THREE.MeshStandardMaterial({color:0xb8b8c0,metalness:1,roughness:.12,envMap:envTex,envMapIntensity:.7});
+const geoBille=new THREE.SphereGeometry(BR,32,20),geoOmbre=new THREE.CircleGeometry(BR*1.1,20).rotateX(-Math.PI/2);
+const matOmbre=new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:.45,depthWrite:false});
+const poolB=[];function meshBille(i){if(!poolB[i]){const m=new THREE.Mesh(geoBille,matBille),o=new THREE.Mesh(geoOmbre,matOmbre);scene.add(m,o);poolB[i]={m,o}}return poolB[i]}
+// particules
+const NP=700,pPos=new Float32Array(NP*3),pCol=new Float32Array(NP*3),pData=[];
+for(let i=0;i<NP;i++){pPos[i*3+1]=-999;pData.push({l:0,vx:0,vy:0,vz:0,g:500})}
+const pGeo=new THREE.BufferGeometry();pGeo.setAttribute('position',new THREE.BufferAttribute(pPos,3));pGeo.setAttribute('color',new THREE.BufferAttribute(pCol,3));
+scene.add(new THREE.Points(pGeo,new THREE.PointsMaterial({size:3.4,vertexColors:true,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending})));
+let pi=0;const tmpP=new THREE.Color();
+function emettre(x,y,z,vx,vy,vz,hex,l,g){const i=pi=(pi+1)%NP,d=pData[i];d.l=l;d.vx=vx;d.vy=vy;d.vz=vz;d.g=g==null?500:g;pPos[i*3]=x;pPos[i*3+1]=y;pPos[i*3+2]=z;tmpP.setHex(hex).multiplyScalar(2.5);pCol[i*3]=tmpP.r;pCol[i*3+1]=tmpP.g;pCol[i*3+2]=tmpP.b}
+function etincelles(x,y,hex,n,z){for(let k=0;k<n;k++){const a=Math.random()*6.283,v=60+Math.random()*260;emettre(x-200,z||10,y-370,Math.cos(a)*v,60+Math.random()*200,Math.sin(a)*v,hex,.4+Math.random()*.5)}}
+function souffle(s){feu=Math.max(feu,s||1);son('feu')}
+const boucheW=new THREE.Vector3(),cibleFeu=P(200,430,0),dirFeu=new THREE.Vector3();
+// post-traitement
+const composer=new EffectComposer(renderer);composer.addPass(new RenderPass(scene,camera));
+const bloom=new UnrealBloomPass(new THREE.Vector2(256,256),.7,.4,1.0);composer.addPass(bloom);composer.addPass(new OutputPass());
+const cible=new THREE.Vector3(0,0,-30),dirCam=new THREE.Vector3(0,1,.2).normalize();let camPos=new THREE.Vector3(),camD=1000,suiviZ=0;
+function cadrer(){const r=zone.getBoundingClientRect();renderer.setSize(r.width,r.height,false);composer.setSize(r.width,r.height);camera.aspect=r.width/r.height;camera.updateProjectionMatrix();
+  const coins=[P(20,16,0),P(380,16,0),P(20,724,26),P(380,724,26),P(20,360,26),P(380,360,26)];let best=null;
+  for(let tz=-80;tz<=120;tz+=10){cible.set(0,0,tz);let lo=200,hi=4000;
+   for(let k=0;k<26;k++){const d=(lo+hi)/2;camera.position.copy(cible).addScaledVector(dirCam,d);camera.lookAt(cible);camera.updateMatrixWorld();
+    const ok=coins.every(c=>{const v=c.clone().project(camera);return Math.abs(v.x)<.995&&Math.abs(v.y)<.99});if(ok)hi=d;else lo=d}
+   if(!best||hi<best.d-1)best={d:hi,tz}}
+  cible.set(0,0,best.tz);camD=best.d*1.01;camera.position.copy(cible).addScaledVector(dirCam,camD);camera.lookAt(cible);camPos=cible.clone()}
+addEventListener('resize',cadrer);
+function popup(t,x,y,col){const v=P(x,y,30).project(camera),r=zone.getBoundingClientRect();const d=document.createElement('div');d.className='pop';d.textContent=t;
+  d.style.left=((v.x+1)/2*r.width)+'px';d.style.top=(r.top+(1-v.y)/2*r.height)+'px';d.style.color=col||'#fff';d.style.textShadow='0 0 8px '+(col||'#fff');document.body.appendChild(d);setTimeout(()=>d.remove(),1000)}
+
+// couleurs du thème
+const THEMES={normal:[0xff7a30,0x3a9be0],dragon:[0xff2a0a,0xffa020],vol:[0xffc040,0xff6a20]};
+const thA=new THREE.Color(0xff7a30),thB=new THREE.Color(0x3a9be0),tmp=new THREE.Color(),tmpB=new THREE.Color();
+function nomTheme(){if(!G||G.etat!=='jeu')return'attract';if(G.multi==='vol')return'vol';if(G.multi==='dragon')return'dragon';if(G.mode)return'mode';return'normal'}
+function litMode(){const Mo=G.mode;if(!Mo)return[];const M=MODES[Mo.i];return M.type==='feux'?Mo.feux:M.type==='compte'?M.coups:M.type==='alt'?[Mo.lit]:[M.coup]}
+function etatFleche(n,t){const cl=Math.sin(t*9)>0;
+  if(G.multi==='vol')return n==='grotte'?[cl?4:.4,0xffffff]:[cl?3.5:.3,C.or];
+  if(G.multi==='dragon'){if(JP.includes(n))return[cl?3.5:.3,C.rouge];if(n==='grotte'&&G.superJP)return[cl?4:.4,C.or];return[.3,null]}
+  if(G.mode){const M=MODES[G.mode.i];if(litMode().includes(n))return[cl?3.6:.4,M.col];return[.25,null]}
+  if(G.multi)return[.3,null];
+  if(n==='taverne')return G.modeOK.some(v=>!v)?[cl?3.2:.5,MODES[G.sel].col]:[.6,null];
+  if(n==='grotte'){if(G.modeOK.every(v=>v))return[cl?4:.4,C.or];if(G.lockLit)return[cl?3.6:.4,C.rouge];return[.35,null]}
+  return[.7+.35*Math.sin(t*3+FLECHES[n].x*.05),null]}
+function rendu(dt){
+  const t=performance.now()/1000,th=nomTheme(),arc=th==='attract'||th==='vol';
+  if(!arc){const pr=th==='mode'?[MODES[G.mode.i].col,0xffe0a0]:THEMES[th]||THEMES.normal;thA.lerp(tmp.setHex(pr[0]),Math.min(1,dt*3));thB.lerp(tmpB.setHex(pr[1]),Math.min(1,dt*3))}
+  else{thA.setHSL((.05+.05*Math.sin(t*.7))%1,1,.55);thB.setHSL((t*.12)%1,1,.55)}
+  flashG=Math.max(0,flashG-dt*1.6);
+  const chase=th!=='normal';
+  for(const s of bandes){let k=1.1*(1+flashG*1.6);
+    if(chase)k*=1+1.4*Math.pow(Math.max(0,Math.sin(t*7-s.i*.45)),6);
+    if(arc)tmp.setHSL((t*.15+s.i*.025)%1,1,.55);else tmp.copy(s.grp?thB:thA);
+    if(flashG>0)tmp.lerp(tmpB.setHex(0xffffff),flashG*.6);
+    s.m.color.copy(tmp).multiplyScalar(k)}
+  matAnneau.color.setHex(C.violet).multiplyScalar(1.5);
+  for(const m of matPlast)m.emissive.copy(thB);
+  fl.forEach((f,i)=>palM[i].rotation.y=-f.ang);
+  bumpers.forEach((u,i)=>{bumpM[i].cap.material.color.copy(u.f>0?tmpB.setHex(0xffffff):tmp.setHex(C.violet)).multiplyScalar(.8+u.f*3);bumpM[i].g.scale.setScalar(1+u.f*.08)});
+  flashL.intensity*=Math.pow(.02,dt);
+  slings.forEach((s,i)=>slingM[i].material.color.setHex(s.flash>0?C.blanc:C.or).multiplyScalar(1+s.flash*4));
+  anneauL.forEach((m,i)=>setL(m,.3+2.6*Math.pow(Math.max(0,Math.sin(t*(chase?10:4)-i*.7)),4)+flashG*2));
+  lacL.forEach((m,i)=>setL(m,.3+2.4*Math.pow(Math.max(0,Math.sin(t*(chase?9:3)+i*.8)),4)+flashG*2,arc?tmp.setHSL((t*.2+i/16)%1,1,.55).getHex():null));
+  // dragon
+  const eveil=G&&G.etat==='jeu'&&(G.lockLit||G.multi),vit=G&&G.multi?9:eveil?5:2;
+  ailes.forEach((a,i)=>a.rotation.z=(.25+Math.sin(t*vit)*.45)*(i?-1:1));
+  dragon.position.y=44+Math.sin(t*vit*.5)*2;
+  let bx=200;if(G&&billes.length){const b=billes[0];if(!b.rampe)bx=b.x}
+  teteD.rotation.y+=((Math.max(-.6,Math.min(.6,(bx-200)/180)))-teteD.rotation.y)*Math.min(1,dt*3);
+  matOeil.color.setHex(0xffb030).multiplyScalar(eveil?3+Math.sin(t*10):.9);
+  lumGrotte.intensity=(G&&G.etat==='jeu'&&etatFleche('grotte',t)[0]>1?9000:2500)*(1+Math.sin(t*7)*.15);
+  if(feu>0){feu-=dt;bouche.getWorldPosition(boucheW);dirFeu.subVectors(cibleFeu,boucheW).normalize();
+    for(let k=0;k<12;k++){const v=260+Math.random()*200;emettre(boucheW.x,boucheW.y,boucheW.z,dirFeu.x*v+(Math.random()-.5)*70,dirFeu.y*v+(Math.random()-.5)*50,dirFeu.z*v+(Math.random()-.5)*70,[0xffe060,0xff8a10,0xff3a00][k%3],.5+Math.random()*.4,-80)}
+    lumDragon.position.copy(boucheW);lumDragon.intensity=7000*(1+Math.random()*.4)}else lumDragon.intensity*=Math.pow(.01,dt);
+  if(G){
+    const tt=G.t,cl=Math.sin(t*9)>0;
+    matEnseigne.color.setHex(C.or).multiplyScalar(etatFleche('taverne',t)[0]>1?3:1);
+    oeufs.forEach((s,i)=>oeufM[i].material.color.setHex(0xfff0c0).multiplyScalar(G.oeufs[i]?3:.5+.3*Math.sin(t*5+i)));
+    drops.forEach((s,i)=>{G.dropAnim[i]+=((G.drop[i]?1:0)-G.dropAnim[i])*Math.min(1,dt*14);dropM[i].position.y=8-G.dropAnim[i]*17;dropM[i].material.color.setHex(C.orange).multiplyScalar(2.2)});
+    for(const n in fleches){const [k,hex]=etatFleche(n,t);setL(fleches[n],k,hex)}
+    for(const n in colonnes){const c=(G.tirs[n]||0)%4;colonnes[n].forEach((m,i)=>setL(m,i<c?3:i===c?.8+.7*Math.sin(t*6):.25))}
+    MODES.forEach((m,i)=>{let k=.3;if(G.multi==='vol')k=1.2+Math.sin(t*8+i);else if(G.modeOK[i])k=1.8;else if(G.mode&&G.mode.i===i)k=Math.sin(t*16)>0?2.4:.3;else if(!G.mode&&!G.multi&&i===G.sel)k=cl?2:.5;setT(reliqueM[i],k)});
+    laneI.forEach((m,i)=>setT(m,G.lanes[i]?2.2:((G.skillFin&&tt<G.skillFin)||(G.skillFin===0&&billes.some(auRepos)))&&i===G.skill?(Math.sin(t*14)>0?2.4:.2):.25));
+    multI.forEach((m,i)=>setT(m,G.mult>=i+2?2:.22));
+    lockI.forEach((m,i)=>setL(m,G.locked>i?3:G.lockLit&&i===G.locked?(cl?3:.3):.2));
+    setT(saveI,tt<G.save?(Math.sin(t*10)>0?2.2:.6):.2);
+    spinG.rotation.x=G.spinA;
+    ressort.position.copy(P(366,722+G.charge*14,8));
+    let i=0,somZ=0,nz=0;
+    for(;i<billes.length;i++){const b=billes[i],o=meshBille(i);let p;
+      if(b.rampe)p=RAMPES[b.rampe.id].courbe.getPointAt(Math.min(1,b.rampe.u));else p=P(b.x,b.y,b.tenu?3:BR);
+      o.m.position.copy(p);o.m.visible=o.o.visible=true;o.o.position.set(p.x+2,.8,p.z+3);
+      if(!b.rampe&&!dansCouloir(b)){somZ+=p.z;nz++}}
+    for(;i<poolB.length;i++){poolB[i].m.visible=poolB[i].o.visible=false}
+    suiviZ+=((nz?Math.max(-30,Math.min(30,(somZ/nz)*.09)):0)-suiviZ)*Math.min(1,dt*2);
+  }else{for(const n in fleches)setL(fleches[n],1+Math.sin(t*4+fleches[n].position.x*.05)*.8,new THREE.Color().setHSL((t*.1+fleches[n].position.z*.002)%1,1,.5).getHex());
+    MODES.forEach((m,i)=>setT(reliqueM[i],1+Math.sin(t*3+i)));for(const n in colonnes)colonnes[n].forEach((m,i)=>setL(m,1+Math.sin(t*5+i)));matEnseigne.color.setHex(C.or).multiplyScalar(2)}
+  for(let i=0;i<NP;i++){const d=pData[i];if(d.l<=0)continue;d.l-=dt;d.vy-=d.g*dt;pPos[i*3]+=d.vx*dt;pPos[i*3+1]=Math.max(1,pPos[i*3+1]+d.vy*dt);pPos[i*3+2]+=d.vz*dt;d.vx*=.97;d.vz*=.97;if(d.l<=0)pPos[i*3+1]=-999}
+  pGeo.attributes.position.needsUpdate=true;pGeo.attributes.color.needsUpdate=true;
+  punch=Math.max(0,punch-dt*1.5);
+  const c=camPos.clone();c.z+=suiviZ;const d=camD*(1-.07*Math.sin(Math.min(1,punch)*Math.PI/2));
+  camera.position.copy(c).addScaledVector(dirCam,d);
+  if(shake>0){camera.position.x+=(Math.random()-.5)*shake;camera.position.y+=(Math.random()-.5)*shake}
+  camera.lookAt(c);
+  composer.render();
+}
+
+/* ================= ÉCRAN À POINTS (DMD 128×32) ================= */
+const DW=128,DH=32,OR='#ff8a30';
+const dmdC=$('dmd'),dx=dmdC.getContext('2d');
+const dm=document.createElement('canvas');dm.width=DW;dm.height=DH;const d=dm.getContext('2d');
+let masque=null,pitch=3,ox=0,oy=0;
+function dmdTaille(){const r=dmdC.getBoundingClientRect(),k=Math.min(2,devicePixelRatio||1);dmdC.width=Math.max(DW,Math.round(r.width*k));dmdC.height=Math.max(DH,Math.round(r.height*k));
+  pitch=Math.max(1,Math.floor(Math.min(dmdC.width/DW,dmdC.height/DH)));ox=Math.floor((dmdC.width-pitch*DW)/2);oy=Math.floor((dmdC.height-pitch*DH)/2);
+  masque=document.createElement('canvas');masque.width=pitch*DW;masque.height=pitch*DH;const m=masque.getContext('2d');m.fillStyle='#000';m.fillRect(0,0,masque.width,masque.height);
+  if(pitch>=2){m.globalCompositeOperation='destination-out';m.beginPath();for(let y=0;y<DH;y++)for(let x=0;x<DW;x++){m.moveTo(x*pitch+pitch/2+pitch*.44,y*pitch+pitch/2);m.arc(x*pitch+pitch/2,y*pitch+pitch/2,pitch*.44,0,6.283)}m.fill()}else m.clearRect(0,0,masque.width,masque.height)}
+const F3={A:'010101111101101',B:'110101110101110',C:'011100100100011',D:'110101101101110',E:'111100110100111',F:'111100110100100',G:'011100101101011',H:'101101111101101',I:'111010010010111',J:'001001001101010',K:'101101110101101',L:'100100100100111',M:'101111111101101',N:'110101101101101',O:'010101101101010',P:'110101110100100',Q:'010101101110011',R:'110101110101101',S:'011100010001110',T:'111010010010010',U:'101101101101111',V:'101101101101010',W:'101101111111101',X:'101101010101101',Y:'101101010010010',Z:'111001010100111',
+  0:'111101101101111',1:'010110010010111',2:'110001010100111',3:'110001010001110',4:'101101111001001',5:'111100110001110',6:'011100111101111',7:'111001010010010',8:'111101111101111',9:'111101111001110',' ':'000000000000000',':':'000010000010000','.':'000000000000010','/':'001001010100100','-':'000000111000000','+':'000010111010000','!':'010010010000010',"'":'010010000000000','?':'110001010000010','(':'010100100100010',')':'010001001001010','=':'000111000111000'};
+const norm=s=>String(s).toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/×/g,'X').replace(/’/g,"'").replace(/Œ/g,'OE');
+function t3(s,x,y,al,a){s=norm(s);const w=s.length*4-1;let X=al==='c'?Math.round(x-w/2):al==='r'?x-w:x;
+  if(al==='c'&&w>DW-2){const t=performance.now()/1000,tot=w+DW;X=DW-((t*30)%tot)}
+  d.globalAlpha=a==null?1:a;d.fillStyle=OR;
+  for(const ch of s){const g=F3[ch];if(g&&X>-4&&X<DW)for(let i=0;i<15;i++)if(g[i]==='1')d.fillRect(X+i%3,y+(i/3|0),1,1);X+=4}d.globalAlpha=1}
+function tb(s,x,y,taille,a,maxW){d.font=`900 ${taille}px "Arial Black","Arial Bold",Arial,sans-serif`;d.textAlign='center';d.textBaseline='middle';const w=d.measureText(s).width,mw=maxW||DW-4;
+  d.save();d.translate(x,y);if(w>mw)d.scale(mw/w,1);d.globalAlpha=a==null?1:a;d.fillStyle=OR;d.fillText(s,0,1);d.restore()}
+function dragonDMD(x,y,s,bat){d.save();d.translate(x,y);d.scale(s,s);d.fillStyle=OR;
+  d.beginPath();d.ellipse(0,0,9,4,0,0,6.283);d.fill();
+  d.beginPath();d.moveTo(6,-2);d.quadraticCurveTo(13,-10,17,-8);d.lineTo(23,-7);d.lineTo(18,-5);d.quadraticCurveTo(12,-5,7,1);d.fill();
+  d.beginPath();d.moveTo(-8,0);d.quadraticCurveTo(-16,5,-22,0);d.lineTo(-25,-2);d.lineTo(-21,2);d.quadraticCurveTo(-15,8,-6,2);d.fill();
+  const w=Math.sin(bat)*7;d.beginPath();d.moveTo(-3,-2);d.lineTo(-12,-10-w);d.lineTo(-2,-9-w);d.lineTo(2,-14-w*1.2);d.lineTo(5,-8);d.lineTo(6,-3);d.fill();
+  d.fillRect(-5,3,1.5,4);d.fillRect(3,3,1.5,4);d.restore()}
+function feuDMD(x,y,len,dir){for(let i=0;i<70;i++){const u=Math.random();d.globalAlpha=1-u*.8;d.fillStyle=OR;d.fillRect(x+dir*u*len,y+(Math.random()-.5)*u*14,1,1)}d.globalAlpha=1}
+function epeesDMD(cx,cy){d.strokeStyle=OR;d.fillStyle=OR;d.lineWidth=1.3;for(const s of [-1,1]){d.save();d.translate(cx,cy);d.scale(s*.75,.75);d.beginPath();d.moveTo(-9,9);d.lineTo(8,-8);d.stroke();d.beginPath();d.moveTo(-8,4);d.lineTo(-4,8);d.stroke();d.fillRect(-11,9,2,2);d.restore()}}
+function bouclierDMD(cx,cy,lettre,a){d.save();d.globalAlpha=a==null?1:a;d.strokeStyle=OR;d.lineWidth=1;d.beginPath();d.moveTo(cx-9,cy-12);d.lineTo(cx+9,cy-12);d.lineTo(cx+9,cy);d.quadraticCurveTo(cx+9,cy+8,cx,cy+13);d.quadraticCurveTo(cx-9,cy+8,cx-9,cy);d.closePath();d.stroke();d.restore();if(lettre)tb(lettre,cx,cy-1,13,a)}
+function grotteDMD(cx,by,h){d.fillStyle=OR;d.beginPath();d.moveTo(cx-14,by);d.lineTo(cx-6,by-h);d.lineTo(cx,by-h*.8);d.lineTo(cx+6,by-h);d.lineTo(cx+14,by);d.fill();d.fillStyle='#250a02';d.beginPath();d.arc(cx,by,5,Math.PI,0);d.fill()}
+function rayons(t,a){d.save();d.translate(DW/2,DH/2);d.rotate(t*1.5);d.globalAlpha=a||.25;d.fillStyle=OR;for(let i=0;i<12;i++){d.rotate(Math.PI/6);d.beginPath();d.moveTo(0,0);d.lineTo(DW,-8);d.lineTo(DW,8);d.fill()}d.restore();d.globalAlpha=1}
+function dessinDMD(){const t=performance.now()/1000;d.globalAlpha=1;d.fillStyle='#250a02';d.fillRect(0,0,DW,DH);
+  if(!G||(G.etat!=='jeu'&&!bandeau)){
+    if(G&&G.etat==='fin'){t3('SCORE FINAL',DW/2,2,'c');tb(fr(G.score),DW/2,19,15)}
+    else{const ph=t%10;
+      if(ph<4){const x=-30+ph/4*190;dragonDMD(x,14,1,t*8);feuDMD(x+23,8,30,1);if(ph>1.2)tb('LE REVEIL',DW/2,10,12,Math.min(1,(ph-1.2)*2));if(ph>1.8)t3('DU DRAGON',DW/2,24,'c')}
+      else if(ph<7){grotteDMD(16,30,20);grotteDMD(112,30,20);tb('6 MISSIONS',DW/2,10,11);t3('1 DRAGON',DW/2,22,'c')}
+      else{bouclierDMD(14,16,'');bouclierDMD(114,16,'');t3('RECORD',DW/2,3,'c');tb(rec?fr(rec):'---',DW/2,20,13)}}}
+  else if(bandeau){const e=bandeau.d-bandeau.l,sc=bandeau.scene;
+    if(bandeau.bonus){const k=Math.min(1,e/1.6);t3('BONUS X'+bandeau.m,DW/2,2,'c');tb(fr(bandeau.bonus*k),DW/2,19,15)}
+    else if(sc==='dragon'){const p=Math.min(1,e/1.1);if(p<1){const x=-30+p*120;dragonDMD(x,15,1.1,t*10);feuDMD(x+25,8,50,1)}else{if(Math.sin(t*20)>0||e>1.6)tb(bandeau.t,DW/2,bandeau.sous?11:16,13);if(bandeau.sous)t3(bandeau.sous,DW/2,25,'c');feuDMD(0,30,128,1)}}
+    else if(sc==='epees'){const yy=bandeau.sous?10:16;epeesDMD(11,yy);epeesDMD(117,yy);tb(bandeau.t,DW/2,bandeau.sous?11:16,12,1,96);if(bandeau.sous)t3(bandeau.sous,DW/2,24,'c')}
+    else if(sc==='bouclier'){const z=Math.min(1,e/.5),yy=bandeau.sous?12:16;bouclierDMD(12,yy,bandeau.lettre,z);bouclierDMD(116,yy,bandeau.lettre,z);tb(bandeau.t,DW/2,bandeau.sous?11:16,11,1,86);if(bandeau.sous)t3(bandeau.sous,DW/2,24,'c')}
+    else if(sc==='jackpot'){const inv=e<.6&&Math.floor(e*12)%2===0;if(inv){d.fillStyle=OR;d.fillRect(0,0,DW,DH)}for(let i=0;i<3;i++){const r=((e*60+i*20)%60);d.strokeStyle=OR;d.globalAlpha=1-r/60;d.beginPath();d.arc(DW/2,DH/2,r,0,6.283);d.stroke()}d.globalAlpha=1;
+      if(inv){d.font='900 15px "Arial Black",Arial';d.textAlign='center';d.textBaseline='middle';d.fillStyle='#250a02';const w=d.measureText(bandeau.t).width;d.save();d.translate(DW/2,17);if(w>124)d.scale(124/w,1);d.fillText(bandeau.t,0,0);d.restore()}else tb(bandeau.t,DW/2,bandeau.sous?11:16,15);
+      if(bandeau.sous&&!inv)t3(bandeau.sous,DW/2,25,'c')}
+    else if(sc==='chateau'){const hh=Math.min(bandeau.sous?18:24,e*40),by=bandeau.sous?21:31;grotteDMD(14,by,hh);grotteDMD(114,by,hh);rayons(t,.15);tb(bandeau.t,DW/2,bandeau.sous?11:16,12,1,72);if(bandeau.sous)t3(bandeau.sous,DW/2,24,'c')}
+    else if(sc==='tresor'){for(let i=0;i<14;i++){const x=(i*37)%DW,y=((t*30+i*13)%40)-6;d.fillStyle=OR;d.beginPath();d.ellipse(x,y,2.2,1.4+Math.sin(t*8+i),0,0,6.283);d.fill()}tb(bandeau.t,DW/2,bandeau.sous?11:16,13);if(bandeau.sous)t3(bandeau.sous,DW/2,25,'c')}
+    else{rayons(t,.22);const z=e<.3?.3+e/.3*.7+Math.sin(e/.3*Math.PI)*.25:1;d.save();d.translate(DW/2,bandeau.sous?11:16);d.scale(z,z);d.translate(-DW/2,-(bandeau.sous?11:16));tb(bandeau.t,DW/2,bandeau.sous?11:16,14);d.restore();if(bandeau.sous)t3(bandeau.sous,DW/2,25,'c')}}
+  else{
+    t3('BILLE '+G.bille,1,1);t3('X'+G.mult,DW-1,1,'r');
+    t3(G.locked?'LOCK '+G.locked+'/2':'RELIQUES '+G.modeOK.reduce((a,v)=>a+v,0)+'/6',DW/2,1,'c',.8);
+    tb(fr(G.score),DW/2,15,14);
+    let bas='',prog=-1;
+    if(G.tilt)bas='TILT';
+    else if(G.mode){const M=MODES[G.mode.i],Mo=G.mode,r=Math.max(0,Math.ceil(Mo.fin-G.t));
+      if(M.type==='hurry')bas=M.c+' : '+M.aide+' '+fr(Mo.val*G.mult);else if(M.type==='alt')bas=M.c+' : RAMPE '+(Mo.lit==='rampeG'?'GAUCHE':'DROITE')+' '+Mo.n+'/'+M.but;else bas=M.c+' : '+M.aide+' '+Mo.n+'/'+M.but;
+      bas+='  '+r+'S';prog=(Mo.fin-G.t)/Mo.duree}
+    else if(G.multi==='dragon')bas=G.superJP?'SUPER JACKPOT : GROTTE':'JACKPOTS : RAMPES ET ORBITES';
+    else if(G.multi==='vol')bas='DERNIER VOL : TOUT RAPPORTE';
+    else if(billes.some(auRepos))bas=Math.sin(t*6)>0?'MAINTIENS A DROITE POUR LANCER':'';
+    else if(G.modeOK.every(v=>v))bas='LE DERNIER VOL : GROTTE';
+    else if(G.lockLit&&t%6<3)bas='LOCK : GROTTE';
+    else if(t%6<3)bas='TAVERNE : '+MODES[G.sel].n;
+    else{const n=G.oeufs.reduce((a,v)=>a+v,0);bas='OEUFS '+n+'/3 POUR LE LOCK';prog=n/3}
+    if(bas)t3(bas,DW/2,25,'c');
+    if(prog>=0){d.globalAlpha=.3;d.fillStyle=OR;d.fillRect(0,31,DW,1);d.globalAlpha=1;d.fillRect(0,31,Math.round(DW*Math.max(0,Math.min(1,prog))),1)}}
+  dx.globalCompositeOperation='source-over';dx.globalAlpha=1;dx.fillStyle='#000';dx.fillRect(0,0,dmdC.width,dmdC.height);dx.imageSmoothingEnabled=false;dx.drawImage(dm,ox,oy,pitch*DW,pitch*DH);if(masque)dx.drawImage(masque,ox,oy);
+  dx.imageSmoothingEnabled=true;dx.globalCompositeOperation='lighter';dx.globalAlpha=.35;dx.drawImage(dm,ox-pitch,oy-pitch,pitch*(DW+2),pitch*(DH+2));dx.globalAlpha=1;dx.globalCompositeOperation='source-over'}
+addEventListener('resize',dmdTaille);
+
+/* ================= SON / VOIX / VIBRATION ================= */
+let ac=null,mg=null,sg=null,bruit=null,musique=true,effets=true,nT=0,pasM=0;
+try{musique=localStorage.getItem('reveil_musique')!=='0';effets=localStorage.getItem('reveil_effets')!=='0'}catch(e){}
+function audio(){if(ac){if(ac.state==='suspended')ac.resume();return}
+  try{ac=new (window.AudioContext||window.webkitAudioContext)();sg=ac.createGain();sg.gain.value=effets?.5:0;sg.connect(ac.destination);mg=ac.createGain();mg.gain.value=musique?.08:0;mg.connect(ac.destination);nT=ac.currentTime+.1;
+    bruit=ac.createBuffer(1,ac.sampleRate,ac.sampleRate);const b=bruit.getChannelData(0);for(let i=0;i<b.length;i++)b[i]=Math.random()*2-1}catch(e){ac=null}}
+function bip(f,dur,type,v,f2,quand,dest){if(!ac)return;const t=quand||ac.currentTime,o=ac.createOscillator(),g=ac.createGain();o.type=type||'square';o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+dur);
+  g.gain.setValueAtTime(v||.2,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);o.connect(g);g.connect(dest||sg);o.start(t);o.stop(t+dur+.02)}
+function souff(dur,v,type,f1,f2,quand,dest){if(!ac||!bruit)return;const t=quand||ac.currentTime,s=ac.createBufferSource(),fi=ac.createBiquadFilter(),g=ac.createGain();s.buffer=bruit;s.loop=true;fi.type=type||'bandpass';fi.frequency.setValueAtTime(f1,t);if(f2)fi.frequency.exponentialRampToValueAtTime(f2,t+dur);
+  g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);s.connect(fi);fi.connect(g);g.connect(dest||sg);s.start(t);s.stop(t+dur+.02)}
+let dTic=0,dSpin=0,dFeu=0;
+function son(n){if(!ac||!effets)return;const t=ac.currentTime;
+  if(n==='bumper'){bip(620,.12,'square',.14,240);souff(.08,.2,'highpass',3000)}
+  else if(n==='epee'){souff(.12,.35,'highpass',4000);bip(2200,.35,'sine',.08,2100);bip(3350,.25,'sine',.05)}
+  else if(n==='flip')bip(110,.06,'square',.12,60);
+  else if(n==='lane'){bip(784,.1,'triangle',.15);bip(1175,.14,'triangle',.15,null,t+.08)}
+  else if(n==='cible')bip(900,.1,'sawtooth',.1,1600);
+  else if(n==='drop'){bip(160,.15,'square',.2,80);souff(.1,.3,'lowpass',800)}
+  else if(n==='rampe'){souff(.6,.15,'bandpass',400,2000);bip(300,.6,'triangle',.08,900)}
+  else if(n==='sortie'){bip(1046,.1,'triangle',.12);bip(1568,.15,'triangle',.12,null,t+.08)}
+  else if(n==='orbite')souff(.5,.25,'bandpass',300,3000);
+  else if(n==='spin'){if(t-dSpin>.04){dSpin=t;bip(2400,.02,'square',.04)}}
+  else if(n==='lock'){bip(90,.6,'sawtooth',.25,40);souff(.6,.3,'lowpass',600,100)}
+  else if(n==='porte'){bip(60,.4,'sine',.5,35);souff(.5,.25,'bandpass',900,300,t+.05);for(let i=0;i<5;i++)bip(1800+Math.random()*900,.03,'square',.03,null,t+.1+i*.05)}
+  else if(n==='secousse'){bip(70,.18,'square',.3,40)}
+  else if(n==='combo'){[659,880,1175].forEach((f,i)=>bip(f,.12,'triangle',.14,null,t+i*.05))}
+  else if(n==='lance')souff(.35,.2,'bandpass',300,1500);
+  else if(n==='tic'){if(t-dTic>.05){dTic=t;bip(1800,.03,'sine',.05)}}
+  else if(n==='perdu'){bip(392,.5,'sawtooth',.14,370);bip(311,.9,'sawtooth',.14,290,t+.35)}
+  else if(n==='or'){[1568,2093,2637,2093,2637].forEach((f,i)=>bip(f,.12,'sine',.12,null,t+i*.06))}
+  else if(n==='jackpot'){[523,659,784,1047].forEach((f,i)=>bip(f,.2,'square',.12,null,t+i*.07));souff(.6,.2,'highpass',5000)}
+  else if(n==='fanfare'||n==='victoire'){const L=n==='victoire'?[392,523,659,784,1047,784,1047]:[523,659,784,1047];L.forEach((f,i)=>{bip(f,.25,'sawtooth',.08,null,t+i*.11);bip(f*1.5,.25,'triangle',.05,null,t+i*.11)})}
+  else if(n==='cor'){[220,277,330].forEach(f=>{const o=ac.createOscillator(),g=ac.createGain(),fi=ac.createBiquadFilter();o.type='sawtooth';o.frequency.value=f;fi.type='lowpass';fi.frequency.setValueAtTime(300,t);fi.frequency.linearRampToValueAtTime(1400,t+.4);g.gain.setValueAtTime(.001,t);g.gain.linearRampToValueAtTime(.12,t+.25);g.gain.exponentialRampToValueAtTime(.001,t+1.3);o.connect(fi);fi.connect(g);g.connect(sg);o.start(t);o.stop(t+1.35)})}
+  else if(n==='roar'){souff(1.4,.6,'lowpass',1400,120);bip(110,1.2,'sawtooth',.2,45);bip(83,1.2,'square',.1,40)}
+  else if(n==='feu'){if(t-dFeu>.5){dFeu=t;souff(1,.35,'bandpass',800,200)}}}
+// musique (la mineur) : basse, cordes, timbales
+const ACC=[[45,[69,72,76]],[41,[65,69,72]],[36,[64,67,72]],[43,[67,71,74]]],hz=m=>440*Math.pow(2,(m-69)/12);
+function planifier(){if(!ac||!musique)return;const vite=G&&G.etat==='jeu'&&(G.multi||G.mode),e=60/(vite?126:104)/2;
+  while(nT<ac.currentTime+.3){const bar=Math.floor(pasM/8)%4,[ba,ch]=ACC[bar],s=pasM%8;
+    const o=ac.createOscillator(),g=ac.createGain(),fi=ac.createBiquadFilter();o.type='sawtooth';o.frequency.value=hz(ba+([0,12,0,12,7,12,0,7][s]));fi.type='lowpass';fi.frequency.value=vite?950:620;
+    g.gain.setValueAtTime(.45,nT);g.gain.exponentialRampToValueAtTime(.01,nT+e*.9);o.connect(fi);fi.connect(g);g.connect(mg);o.start(nT);o.stop(nT+e);
+    if(s===0)for(const [j,n] of ch.entries()){const p=ac.createOscillator(),pg=ac.createGain(),pf=ac.createBiquadFilter();p.type='sawtooth';p.frequency.value=hz(n);p.detune.value=(j-1)*8;pf.type='lowpass';pf.frequency.value=1200;
+      pg.gain.setValueAtTime(.001,nT);pg.gain.linearRampToValueAtTime(.07,nT+e*2);pg.gain.linearRampToValueAtTime(.001,nT+e*8);p.connect(pf);pf.connect(pg);pg.connect(mg);p.start(nT);p.stop(nT+e*8)}
+    if(s===0||s===4||(vite&&s%2===0)){const k=ac.createOscillator(),kg=ac.createGain();k.type='sine';k.frequency.setValueAtTime(s===0?95:80,nT);k.frequency.exponentialRampToValueAtTime(42,nT+.3);kg.gain.setValueAtTime(.9,nT);kg.gain.exponentialRampToValueAtTime(.01,nT+.35);k.connect(kg);kg.connect(mg);k.start(nT);k.stop(nT+.36)}
+    if(vite&&(s===2||s===6))souff(.12,.4,'highpass',1800,null,nT,mg);
+    if(bar===3&&s===6){bip(hz(76),.5,'triangle',.25,null,nT,mg);bip(hz(74),.6,'triangle',.25,null,nT+e,mg)}
+    pasM++;nT+=e}}
+setInterval(planifier,100);
+let voixFr=null;
+function choisirVoix(){try{const v=speechSynthesis.getVoices();voixFr=v.find(x=>/^fr/i.test(x.lang)&&/google|natural|neural/i.test(x.name))||v.find(x=>/^fr/i.test(x.lang))||null}catch(e){}}
+if('speechSynthesis' in window){choisirVoix();speechSynthesis.onvoiceschanged=choisirVoix}
+function voix(t){if(!effets||!('speechSynthesis' in window))return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='fr-FR';if(voixFr)u.voice=voixFr;u.rate=1.02;u.pitch=.75;u.volume=1;speechSynthesis.speak(u)}catch(e){}}
+function vib(p){if(effets&&navigator.vibrate)try{navigator.vibrate(p)}catch(e){}}
+function majSon(){$('son').classList.toggle('off',!musique);$('sfx').classList.toggle('off',!effets);if(mg)mg.gain.value=musique?.08:0;if(sg)sg.gain.value=effets?.5:0;if(ac)nT=Math.max(nT,ac.currentTime+.05)}
+const stop=e=>e.stopPropagation();
+for(const id of ['son','sfx'])$(id).addEventListener('pointerdown',stop);
+$('son').onclick=()=>{audio();musique=!musique;try{localStorage.setItem('reveil_musique',musique?'1':'0')}catch(e){}majSon()};
+$('sfx').onclick=()=>{audio();effets=!effets;try{localStorage.setItem('reveil_effets',effets?'1':'0')}catch(e){}majSon()};
+
+/* ================= COMMANDES ================= */
+const touches=new Map(),departs=new Map();
+function majPalettes(){let g=false,dr=false;for(const v of touches.values()){if(v<0)g=true;else dr=true}
+  [[0,g],[1,dr]].forEach(([i,on])=>{const jeu=G&&G.etat==='jeu'&&!G.tilt;if(on&&!fl[i].on&&jeu){son('flip');vib(8);const l=G.lanes;G.lanes=i===0?[l[1],l[2],l[0]]:[l[2],l[0],l[1]]}fl[i].on=on&&!!jeu})}
+zone.addEventListener('pointerdown',e=>{e.preventDefault();audio();const r=zone.getBoundingClientRect();touches.set('p'+e.pointerId,(e.clientX-r.left)<r.width/2?-1:1);departs.set(e.pointerId,{y:e.clientY,t:performance.now(),ok:false});majPalettes()});
+zone.addEventListener('pointermove',e=>{const dd=departs.get(e.pointerId);if(!dd||dd.ok)return;if(dd.y-e.clientY>45&&performance.now()-dd.t<300){dd.ok=true;secouer()}});
+const lacher=e=>{touches.delete('p'+e.pointerId);departs.delete(e.pointerId);majPalettes()};
+zone.addEventListener('pointerup',lacher);zone.addEventListener('pointercancel',lacher);zone.addEventListener('pointerleave',lacher);
+const KG=['ArrowLeft','KeyZ','KeyA','ShiftLeft'],KD=['ArrowRight','KeyM','KeyL','ShiftRight','Space','ArrowDown','Enter'];
+addEventListener('keydown',e=>{if(e.repeat)return;if(!$('menu').hidden||!$('fin').hidden)return;if(e.code==='ArrowUp'||e.code==='KeyN'){secouer();e.preventDefault();return}
+  if(KG.includes(e.code))touches.set(e.code,-1);else if(KD.includes(e.code))touches.set(e.code,1);else return;e.preventDefault();audio();majPalettes()});
+addEventListener('keyup',e=>{if(touches.delete(e.code))majPalettes()});
+addEventListener('contextmenu',e=>e.preventDefault());
+$('listeMissions').innerHTML=MODES.map(m=>`<div><span>${m.e}</span>${m.n.charAt(0)+m.n.slice(1).toLowerCase()}</div>`).join('');
+function demarrer(){audio();majSon();$('menu').hidden=true;$('fin').hidden=true;touches.clear();nouvellePartie();majPalettes();voix('Le dragon se réveille ! À vous de jouer !')}
+$('jouer').onclick=demarrer;$('rejouer').onclick=()=>{$('fin').hidden=true;$('menu').hidden=false;G=null};
+$('recMenu').textContent=rec?'Record : '+fr(rec):'';
+window.__flipper={get G(){return G},billes:()=>billes,coup:(n,x,y)=>coup(n,x||200,y||300),demarrer,
+  trou:k=>{const T=TROUS[k];let b=billes.find(x=>!x.rampe&&!x.tenu);if(!b){b={x:T.x,y:T.y,vx:0,vy:0,r:BR};billes.push(b)}b.tenu=G.t+1.5;b.trou=k;b.x=T.x;b.y=T.y;b.vx=b.vy=0;if(k==='grotte')grotte(b);else taverne(b)}};
+
+/* ================= BOUCLE ================= */
+let der=performance.now(),dL=0;
+function boucle(now){let dt=Math.min(.033,(now-der)/1000);der=now;const reel=dt;
+  if(now<lentJusqua)dt*=.3;
+  if(G)maj(dt);
+  if(bandeau){bandeau.l-=reel;if(bandeau.l<=0)bandeau=null}
+  shake=Math.max(0,shake-reel*30);
+  rendu(reel);dL+=reel;if(dL>.033){dL=0;dessinDMD()}
+  requestAnimationFrame(boucle)}
+cadrer();dmdTaille();majSon();
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{const tx=texSol();sol.material.map=tx;sol.material.emissiveMap=tx;sol.material.needsUpdate=true;dmdTaille()});
+requestAnimationFrame(boucle);
+</script>
+</body>
+</html>

@@ -2,6 +2,16 @@
   "createur": "Papa",
   "jeux": [
     {
+      "id": "reveil-du-dragon",
+      "titre": "Le Réveil du Dragon",
+      "description": "Flipper 3D moderne : 8 tirs en éventail, dragon géant et sa grotte, rampes croisées, 6 missions et multiball du dragon.",
+      "image": "images/reveil-du-dragon.webp",
+      "fond": "#120606",
+      "journal": [
+        { "version": "1", "date": "2026-11-27", "changements": ["Nouveau flipper façon flipper moderne : 8 tirs en éventail avec flèches et lumières, rampes métalliques qui se croisent, bumpers en haut à droite.", "Dragon géant en 3D au-dessus de sa grotte, taverne, cibles œufs, écailles, spinner.", "6 missions à la taverne (Village en feu, Chasse aux œufs, Pont des trolls, Mine d'or, Course des rampes, Tempête), multiball du dragon et mode final Le Dernier Vol."], "image": "images/reveil-du-dragon.webp" }
+      ]
+    },
+    {
       "id": "couronne-de-dragons",
       "titre": "Couronne de Dragons",
       "description": "Flipper 3D de chevaliers et de dragons : choisis ta maison, gagne les batailles, conquiers le royaume.",
