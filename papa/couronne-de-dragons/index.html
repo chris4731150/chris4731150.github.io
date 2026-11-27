@@ -534,7 +534,7 @@ const ailes=[-1,1].map(s=>{const sh=new THREE.Shape();sh.moveTo(0,0);sh.lineTo(4
 const lumDragon=new THREE.PointLight(0xff6a20,0,220,1.4);scene.add(lumDragon);
 
 // billes + traînées
-const matBille=new THREE.MeshStandardMaterial({color:0xffffff,metalness:1,roughness:.06,envMap:envTex,envMapIntensity:1.4});
+const matBille=new THREE.MeshStandardMaterial({color:0xb8b8c0,metalness:1,roughness:.12,envMap:envTex,envMapIntensity:.7});
 const geoBille=new THREE.SphereGeometry(BR,32,20),geoOmbre=new THREE.CircleGeometry(BR*1.1,20).rotateX(-Math.PI/2);
 const matOmbre=new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:.45,depthWrite:false});
 const poolB=[];function meshBille(i){if(!poolB[i]){const m=new THREE.Mesh(geoBille,matBille),o=new THREE.Mesh(geoOmbre,matOmbre);scene.add(m,o);poolB[i]={m,o}}return poolB[i]}
@@ -638,9 +638,9 @@ function rendu(dt){
       b.hist.unshift(p.clone());if(b.hist.length>NT)b.hist.length=NT;
       if(i<MAXB)for(let k=1;k<b.hist.length;k++){const s=BR*(1-k/NT)*.8;M4.compose(b.hist[k],Q,S3.set(s,s,s));trainee.setMatrixAt(n++,M4)}
       if(!b.rampe&&!dansCouloir(b)){somZ+=p.z;nz++}
-      if(i===0){lumBille.position.set(p.x,p.y+18,p.z);lumBille.intensity=2500}}
+      if(i===0){lumBille.position.set(p.x,p.y+18,p.z);lumBille.intensity=0}}
     for(;i<poolB.length;i++){poolB[i].m.visible=poolB[i].o.visible=false}
-    trainee.count=n;trainee.instanceMatrix.needsUpdate=true;matTrainee.color.copy(thA).multiplyScalar(1.2);
+    trainee.count=0;trainee.instanceMatrix.needsUpdate=true;matTrainee.color.copy(thA).multiplyScalar(1.2);
     if(!billes.length)lumBille.intensity=0;
     suiviZ+=((nz?Math.max(-30,Math.min(30,(somZ/nz)*.09)):0)-suiviZ)*Math.min(1,dt*2);
   }else{trainee.count=0;for(const n in fleches)setL(fleches[n],1+Math.sin(t*4+fleches[n].position.x*.05)*.8,new THREE.Color().setHSL((t*.1+fleches[n].position.z*.002)%1,1,.5).getHex());MAISONS.forEach((m,i)=>setT(bouclierM[i],1+Math.sin(t*3+i)))}
