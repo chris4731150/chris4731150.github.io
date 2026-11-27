@@ -2,6 +2,16 @@
   "createur": "Papa",
   "jeux": [
     {
+      "id": "couronne-de-dragons",
+      "titre": "Couronne de Dragons",
+      "description": "Flipper 3D de chevaliers et de dragons : choisis ta maison, gagne les batailles, conquiers le royaume.",
+      "image": "images/couronne-de-dragons.webp",
+      "fond": "#0d0705",
+      "journal": [
+        { "version": "1", "date": "2026-11-27", "changements": ["Nouveau flipper façon café : plateau illustré, écran à points orange, dragon et château en 3D.", "6 maisons à choisir, 6 batailles différentes, multiball du dragon, siège royal et mode final La Couronne.", "Trésor, quêtes, combos, skill shot, voix et musique épique."], "image": "images/couronne-de-dragons.webp" }
+      ]
+    },
+    {
       "id": "cuisine-du-port",
       "titre": "Cuisine du Port",
       "description": "Fusionne les ingrédients, sers les clients et rénove ton restaurant au bord de la mer.",
